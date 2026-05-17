@@ -1,0 +1,24 @@
+\chapter{Motivação e Objetivos}\label{chap:problema}
+
+\section{Motivação}\label{sec:motivacao}
+
+A Internet das Coisas (\textit{Internet of Things} -- IoT) representa um dos fenômenos de expansão tecnológica mais expressivos da atualidade, com mais de 18 bilhões de dispositivos ativos globalmente em 2025 \citep{IoTBreakthrough2025}. Esse crescimento abrange setores críticos como saúde, manufatura e cidades inteligentes, tornando a IoT parte fundamental da infraestrutura digital contemporânea. No entanto, esse avanço não é acompanhado por um nível equivalente de maturidade em segurança: 70\% dos dispositivos ainda são suscetíveis a ataques, e o Brasil registrou mais de 500.000 incidentes cibernéticos no segundo semestre de 2024 -- mais de 50\% de todo o total da América Latina no período, com crescimento de 67\% nos ataques direcionados especificamente a dispositivos IoT \citep{NETSCOUT2025}.
+
+Dispositivos IoT possuem recursos computacionais limitados, frequentemente operam com credenciais padrão e utilizam protocolos como MQTT e Telnet, historicamente menos robustos em termos de segurança. Essas características tornam insuficientes as soluções tradicionais baseadas em regras estáticas e detecção por assinatura, projetadas para ambientes de TI convencionais e não para o contexto heterogêneo e dinâmico da IoT \citep{Alfahaid2025}. Nesse cenário, o Aprendizado de Máquina (\textit{Machine Learning} -- ML) surge como abordagem promissora, capaz de identificar padrões anômalos no tráfego de rede sem depender exclusivamente de assinaturas conhecidas, com resultados expressivos reportados na literatura \citep{SouzaArima2024, Bochie2020}.
+
+Apesar dos avanços, ainda há lacunas a investigar: questiona-se se algoritmos de ML clássicos -- desenvolvidos e avaliados em ambientes de rede convencionais -- mantêm desempenho adequado quando aplicados às características específicas do tráfego IoT, ou se demandam adaptações metodológicas. A identificação do modelo mais eficaz para esse contexto representa, portanto, uma contribuição técnica e científica direta para o campo da segurança em redes de computadores.
+
+\section{Objetivo Geral}\label{sec:obj_geral}
+
+Avaliar e comparar o desempenho de algoritmos de Aprendizado de Máquina aplicados à detecção de ataques em redes IoT, utilizando o \textit{dataset} IoT-23, com o propósito de identificar quais abordagens apresentam maior eficácia considerando as restrições e características particulares desse tipo de ambiente.
+
+\section{Objetivos Específicos}\label{sec:obj_espec}
+
+\begin{itemize}[leftmargin=5em]
+    \item Revisar a literatura sobre segurança em redes IoT, abordando os principais tipos de ataques, vulnerabilidades conhecidas e abordagens de detecção baseadas em ML presentes em trabalhos nacionais e internacionais;
+    \item Coletar e pré-processar os dados do \textit{dataset} IoT-23, realizando tratamento de valores ausentes, normalização de \textit{features} e análise exploratória do tráfego de rede contido no conjunto de dados;
+    \item Implementar algoritmos clássicos de ML -- \textit{Random Forest}, SVM e Árvore de Decisão -- e ao menos um modelo de aprendizado profundo (CNN) para classificação de tráfego benigno e malicioso em redes IoT;
+    \item Avaliar o desempenho dos modelos implementados por meio de métricas padronizadas -- acurácia, precisão, \textit{recall}, F1-\textit{Score} e tempo de inferência -- considerando cada tipo de ataque presente no \textit{dataset};
+    \item Analisar comparativamente os resultados obtidos, verificando se os algoritmos de ML tradicionais apresentam desempenho adequado no contexto IoT ou se demandam adaptações metodológicas;
+    \item Discutir as contribuições do trabalho à luz da literatura existente, apontando limitações identificadas e direções para pesquisas futuras.
+\end{itemize}
