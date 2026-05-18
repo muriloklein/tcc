@@ -1,210 +1,136 @@
-\chapter{Revisão de literatura}\label{chap:revisao}
+\chapter{Revisão de Literatura}\label{chap:revisao}
 
-Nesta seção deve-se inserir os achados da revisão de literatura. Caso o trabalho contenha uma fundamentação teórica, pode-se inserir ela como uma sub-seção aqui. Mesmo que não seja realizado um processo sistemático é interessante que o processo de busca e de triagem sejam claros e descritos de forma que possam ser reproduzidos.  Acrescente aqui ainda questões relativas à descrição do sistema/uso atual, enfatizando as partes que vai abordar no seu trabalho.
+Esta seção apresenta os fundamentos teóricos e os principais estudos relacionados ao tema deste trabalho. Inicialmente, descreve-se a arquitetura da Internet das Coisas e suas principais vulnerabilidades de segurança. Em seguida, aborda-se o uso de Aprendizado de Máquina para detecção de intrusão em redes IoT, seguido da caracterização do \textit{dataset} IoT-23 utilizado nos experimentos. Por fim, são apresentados os principais trabalhos relacionados identificados na literatura.
 
-\section{Fundamentação Teórica}
+% ══════════════════════════════════════════════════
+\section{Internet das Coisas: Arquitetura e Vulnerabilidades}\label{sec:iot}
 
-Descreva nesta seção os conhecimentos, fora da área de Tecnologia da Informação, que são necessários ao entendimento do seu trabalho. Lembre-se de mencionar as fontes consultadas para a aquisição do conhecimento e escrita da fundamentação.
-
-
-\section{Dicas para Citações e Referências Bibliográficas}
+A Internet das Coisas (\textit{Internet of Things} -- IoT) refere-se à interconexão de dispositivos físicos -- sensores, atuadores, câmeras, eletrodomésticos e equipamentos industriais -- à internet, permitindo a coleta, troca e análise de dados de forma automatizada \citep{Alfahaid2025}. A arquitetura IoT é tipicamente descrita em três camadas principais \citep{Alshahrani2020}:
 
 
-As citações são indicativos a quem vai ler seu texto de onde você buscou aquele conhecimento/conteúdo, com vistas a escrita de seu texto. Em geral, as citações podem ser de duas formas: diretas ou indiretas. Elas remetem às referências bibliográficas.
-
-As referências bibliográficas neste modelo (em \LaTeX) são automaticamente inseridas com o uso dos comandos ``\texttt{\textbackslash cite}'' e suas variações. O correto preenchimento da sua base de referências, em formato ``\texttt{\textbackslash cite}'' mantém seu texto com as referências corretamente formatadas.
-
-\subsection{Citações diretas}
-
-Para uma \textbf{citação direta} use o comando ``\texttt{\textbackslash cite}''. A citação deve iniciar e terminar por aspas duplas. Se o texto original já contiver aspas duplas, substituí-las por aspas simples (apóstrofos). Em citações diretas, pode-se adicionar o número da página ou localização, se houver, após o ano (neste caso, use o comando ``\texttt{\textbackslash citet}''). Os próximos itens apresentam alguns exemplos:
-
-\begin{itemize}
-    \item Segundo \citet[p.~27]{RIE11}, ``medidas fisiológicas ainda não podem ser consideradas como substitutas de medidas de desempenho e de avaliação subjetiva'';
-	
-    \item De acordo com \cite{Lopes2023} ``foi definido que...'';
-
-    \begin{itemize}
-        \item \cite{patricio2018computer} afirmam que ``a produção de grãos desempenha um papel importante na economia global'';
-        
-        \item ``A OpenGL é uma API complexa, com muitos detalhes que podem confundir o iniciante'', conforme mencionado por \citet[cap.~3]{COH06}.
-    \end{itemize}
+\begin{itemize}[leftmargin=5em]
+    \item \textbf{Camada de percepção:} responsável pela coleta de dados do ambiente físico por meio de sensores e dispositivos embarcados. É a camada mais próxima do hardware e, portanto, mais suscetível a ataques físicos e de \textit{firmware};
+    \item \textbf{Camada de rede:} responsável pela transmissão dos dados coletados. Utiliza protocolos como Wi-Fi, ZigBee, Bluetooth, LTE e 5G para comunicação sem fio, e protocolos de aplicação como MQTT (\textit{Message Queuing Telemetry Transport}), CoAP (\textit{Constrained Application Protocol}) e HTTP para troca de mensagens;
+    \item \textbf{Camada de aplicação:} responsável pelo processamento e apresentação dos dados ao usuário final, abrangendo plataformas de nuvem, interfaces web e aplicativos móveis.
 \end{itemize}
 
-Para uma \textbf{citação direta com mais de três linhas} ela deve ser destacada com recuo de 4 cm da margem esquerda, com letra menor que do que a utilizada no texto. Não se utilizam aspas. A indicação da página da citação pode estar inserida ao final do texto citado. Veja o exemplo a seguir:
+Entre os protocolos utilizados na camada de rede, o MQTT merece destaque por ser amplamente adotado em ambientes IoT devido ao seu baixo consumo de banda e simplicidade. No entanto, uma análise conduzida no mecanismo de busca Shodan revelou até 540.531 vulnerabilidades associadas ao protocolo MQTT em todo o mundo em abril de 2024, evidenciando a dimensão do problema. Por padrão, o MQTT não inclui camada de segurança, sendo responsabilidade do desenvolvedor configurar protocolos como TLS ou SSL \citep{Alshahrani2020}.
 
-Sobre o caderno de campo para dispositivos móveis, \cite{SIL13} consideram que:
-% Comando para citação direta. Mantenha sem endentação no início da frase, para que não seja aplicado o espaçamento de primeira linha.
-\begin{directcite}
-	\noindent Para preencher a lacuna entre aplicações nativas e web, mantendo a portabilidade da solução, faz-se necessário o uso de uma abordagem de desenvolvimento híbrido, em que tecnologias web (HTML, CSS, Javascript) são utilizadas em conjunto com recursos nativos de uma interface de programação (p. 2).
-\end{directcite}
+As vulnerabilidades em redes IoT decorrem de um conjunto de fatores estruturais. Os dispositivos frequentemente possuem recursos computacionais e de memória reduzidos, o que inviabiliza a execução de mecanismos de segurança complexos. Além disso, muitos equipamentos são comercializados com credenciais padrão que raramente são alteradas pelos usuários finais, e a ausência de atualizações regulares de \textit{firmware} mantém falhas de segurança conhecidas sem correção por longos períodos \citep{Alfahaid2025}.
 
-É conveniente que após uma citação direta, o autor do texto que está realizando a citação, utilize da informação citada para realizar ligação ou complementar a idea de seu texto. Uma citação direta solitária e isolada, não faz muito sentido no seu texto.
+Os ataques em redes IoT podem ocorrer em diferentes camadas da arquitetura. Na camada de percepção, destacam-se ataques físicos e manipulação de sensores. Na camada de rede, são frequentes ataques de negação de serviço (DoS), ataques intermediário (\textit{man-in-the-middle}) e varreduras de portas. Já na camada de aplicação, ocorrem violações de privacidade e exploração de vulnerabilidades em serviços e aplicações conectadas.
 
-\subsection{Citações indiretas}
+Entre os ataques mais recorrentes em redes IoT, destacam-se:
 
-Para uma \textbf{citação indireta} use o comando ``\texttt{\textbackslash citep}''. Não se utilizam aspas para esse tipo de citação, nem a(s) página(s) de onde foi extraída a ideia. Este é um dos formatos mais utilizados em monografias, pois apresenta a ideia de outros autores utilizando suas próprias palavras:
+\begin{itemize}[leftmargin=5em]
 
-\begin{enumerate}[label=\alph*)]
-	\item A biblioteca jDssat permite a integração com o DSSAT com novas interfaces \citep{Resenes2019};
-	\item Redes de Petri podem ser utilizadas para especificar uma tarefa de interação, possibilitando identificar partes de código reutilizáveis em novos projetos de interfaces de Realidade Virtual~\citep{RIE10}.
-\end{enumerate}
+    \item \textbf{Botnets IoT:} dispositivos comprometidos são recrutados para compor redes de bots utilizadas em ataques coordenados. O malware Mirai tornou-se um dos exemplos mais conhecidos ao explorar dispositivos IoT com credenciais padrão para execução de ataques DDoS em larga escala;
 
-Já na \textbf{citação de citação} a indicação da fonte é iniciada pelo sobrenome do autor da obra citada (não consultada). Em seguida, dentro de parênteses, utiliza-se a expressão latina \textit{apud} ou citado por, seguido do sobrenome do autor da obra consultada. Quando for citação direta, utilizar aspas. Tome por base o exemplo a seguir:
-\begin{itemize}
-	\item Segundo \cite{BOW02} (\textit{apud}~\cite{BOW04}), as técnicas para manipulação 3D podem ser classificadas de maneira isomórfica, por decomposição de tarefas e por metáfora de interação.
+    \item \textbf{DDoS (\textit{Distributed Denial of Service}):} ataques que utilizam grande volume de tráfego malicioso para tornar serviços indisponíveis;
+
+    \item \textbf{Port Scan:} técnica utilizada para identificar portas abertas e serviços vulneráveis em dispositivos conectados;
+
+    \item \textbf{Comando e Controle (Command and Control -- C\&C):} comunicação estabelecida entre dispositivos infectados e servidores controlados pelos atacantes para coordenação de atividades maliciosas.
+
 \end{itemize}
 
-Para a \textbf{Indicação de Citação} são apresentados os seguintes exemplos:
+Diante desse cenário, abordagens tradicionais de segurança baseadas em assinaturas e regras estáticas apresentam limitações importantes em ambientes IoT, principalmente devido à dificuldade de adaptação a ataques inéditos e variantes desconhecidas \citep{Rahman2025}. Nesse contexto, técnicas baseadas em Aprendizado de Máquina vêm sendo investigadas como alternativa para aumentar a capacidade adaptativa dos Sistemas de Detecção de Intrusão em redes IoT.
 
-\begin{itemize}
-	\item \textbf{Exemplo com autor pessoal}
-	\\ De acordo com \cite{COM10}, apesar da precaução tomada em relação à preparação da pele, aplicação do gel condutor, colocação dos eletrodos e instruções ao usuário, é muito difícil gravar dados de frequência cardíaca absolutamente livre de ruídos;
+% ══════════════════════════════════════════════════
+\section{Aprendizado de Máquina Aplicado à Segurança em Redes IoT}\label{sec:ml_iot}
 
-	\item \textbf{Exemplo com dois autores}
-	\\ \cite{COH06} destacam que a OpenGL é uma biblioteca de rotinas gráficas e de modelagem 2D e 3D, portável, rápida e que permite desenvolver aplicações interativas com alto grau de realismo;
-	
-	\item \textbf{Exemplo com três ou mais autores} 
-	\\ Neste contexto, \cite{BOW04} afirmam que a Realidade Aumentada é uma área em expansão para novas e desafiadoras soluções;
+O Aprendizado de Máquina (\textit{Machine Learning} -- ML) é um subcampo da inteligência artificial que desenvolve algoritmos capazes de aprender padrões a partir de dados e realizar predições ou classificações sem serem explicitamente programados para cada caso \citep{Alfahaid2025}. No contexto da segurança em redes IoT, o ML é aplicado principalmente para construir Sistemas de Detecção de Intrusão (\textit{Intrusion Detection Systems} -- IDS) baseados em anomalias, que identificam comportamentos suspeitos no tráfego de rede sem depender de assinaturas predefinidas.
 
-	\item \textbf{Exemplo com referência à duas ou mais obras}
-	\\ Lorem ipsum é um texto fictício, composto por palavras em latim que, embora não tenham um significado coerente, simula a estrutura e o fluxo de um texto real \citep{RIE111, BENTLEYBC07};
-	
-	\item \textbf{Exemplo com autor institucional}
-	\\ De acordo com o site da UPF \citep{UPF24}: ``Há 55 anos, a Universidade de nossa comunidade'';
-	
-	\item \textbf{Exemplo sem autor, com a entrada pelo título} \\Segundo o manual de Referência do GTK+~3~\citep{GTK13}, a última versão estável é a 3.10.6.
+As abordagens de ML para IDS em IoT são classificadas em duas grandes categorias:
+
+\begin{itemize}[leftmargin=5em]
+    \item \textbf{Aprendizado supervisionado:} o modelo é treinado com dados rotulados, onde cada amostra de tráfego possui uma classe associada (benigno ou tipo de ataque específico). Algoritmos como \textit{Random Forest}, SVM (\textit{Support Vector Machine}), Árvore de Decisão e Redes Neurais Artificiais são amplamente utilizados nessa categoria. A principal vantagem é a alta acurácia quando há dados rotulados suficientes; a limitação é a dependência de um processo de rotulação custoso e a incapacidade de detectar ataques completamente novos;
+    \item \textbf{Aprendizado não supervisionado:} o modelo aprende o comportamento normal da rede e sinaliza desvios como potenciais ataques, sem necessidade de dados rotulados. Técnicas como \textit{K-Means}, \textit{Isolation Forest} e \textit{Autoencoders} se enquadram nessa categoria. São mais flexíveis para detectar ameaças desconhecidas, porém tendem a gerar mais falsos positivos.
 \end{itemize}
 
-Para a exibição correta do \textbf{Digital Object Identifier (DOI)}, quando a referência possuir, use no bibitem da referência o campo ``\texttt{note}'' da seguinte forma ``\texttt{note=\{\textbackslash url\{url completa do DOI\}\}}''. Não use os campos ``\texttt{doi}'' ou ``\texttt{url}''.
+Entre os algoritmos supervisionados mais utilizados na literatura para detecção de ataques IoT, destacam-se:
 
-Quando do uso da \textbf{URL}, quando se quiser indicar a disponibilidade de uma referência, use no bibitem da referência o campo ``\texttt{note}'' da seguinte forma ``\texttt{note=\{Disponível em \textbackslash url\{url\_completa\_da\_referência\}\}}''. Não use o campo ``\texttt{url}''.
+\begin{itemize}[leftmargin=5em]
+    \item \textbf{Random Forest:} conjunto de árvores de decisão treinadas com subconjuntos aleatórios dos dados. É robusto ao sobreajuste (\textit{overfitting}) e lida bem com dados desbalanceados. Experimentos comparativos mostram que o \textit{Random Forest} frequentemente alcança os maiores índices de acurácia em cenários de detecção de botnet em dispositivos IoT.
+    \item \textbf{SVM (\textit{Support Vector Machine}):} constrói um hiperplano de separação entre classes no espaço de \textit{features}. Apresenta bom desempenho em problemas de alta dimensionalidade, porém com maior custo computacional em datasets grandes;
+    \item \textbf{Árvore de Decisão:} modelo de classificação baseado em regras hierárquicas de decisão. Altamente interpretável e de baixo custo computacional, sendo útil para análise do processo de detecção;
+    \item \textbf{CNN (\textit{Convolutional Neural Network}):} rede neural profunda originalmente desenvolvida para processamento de imagens, mas adaptada para classificação de tráfego de rede ao tratar as \textit{features} como sequências. Abordagens híbridas combinando CNN e LSTM têm alcançado até 99\% de acurácia em cenários de detecção de intrusão em redes IoT.
+\end{itemize}
 
-Para casos em que o primeiro autor seja o mesmo para dois ou mais trabalhos, publicados no mesmo ano, é necessário adicionar identificadores no campo ``\texttt{year}'', no bibitem de cada referência relacionada. Por exemplo, ``\texttt{year=\{2020a\}}'' na entrada referente ao primeiro trabalho deste primeiro autor publicado em 2020, ``\texttt{year=\{2020b\}}'' para o segundo trabalho dele em 2020, e assim por diante.
-\\
-\section{Tabelas, Quadros, Algoritmos, Figuras, Equações, Seções e Capítulos}
+Um aspecto crítico a considerar é que a maioria dos estudos de ML para IDS foi desenvolvida e avaliada em datasets de redes convencionais, como NSL-KDD e UNSW-NB15. O tráfego IoT, no entanto, possui características distintas: baixo volume de dados por dispositivo, uso de protocolos específicos e padrões de comunicação periódicos e previsíveis. Essa diferença levanta uma questão central para o presente trabalho: se os algoritmos desenvolvidos para redes convencionais mantêm desempenho satisfatório quando aplicados ao contexto IoT \citep{SouzaArima2024}.
 
-Para que os elementos desta seção possam ser citados, eles necessitam ser identificados quando inseridos no texto. Para tanto, deve-se utilizar a \textit{tag} ``\texttt{\textbackslash label[nome]}'', substituindo o \texttt{nome} pela identificação do elemento. Este \texttt{nome} deve ser único no documento e em geral se inicia pelo tipo (\texttt{tab} para tabelas, \texttt{fig} para figuras ...), seguido de ``:'' e um identificador.
+% ══════════════════════════════════════════════════
+\section{Dataset IoT-23} \label{sec:dataset}
 
-Seguem exemplos:
-\begin{enumerate}[label=(\Roman*)]
-	\item \textbf{Citação}: para referenciar os itens acima no texto use ``\texttt{\textbackslash cref}''. As palavras (Figura, Tabela, Equação, Seção, Capítulo) das citações aparecem automaticamente antes do seu respectivo número, não é necessário escrevê-las;
-	
-	\item \textbf{Tabelas e Quadros}: adota-se uma simplificação relativa à Norma ABNT, não fazendo diferença entre tabelas e quadros. Ambos os casos devem ser considerados tabelas. A legenda deve ser centralizada, não usar negrito, e deve estar posicionada sobre a tabela. Exemplos podem ser visualizados na \cref{tab:tab1} e na \cref{tab:tab2} (ou nas \cref{tab:tab1,tab:tab2} ou nas \crefrange{tab:tab1}{tab:tab2});
-	
-	% Você pode montar suas tabelas on-line e gerar o código. Alguns links para ajudar:
-	% http://www.tablesgenerator.com/
-	% http://truben.no/latex/table/
-	
-	\begin{table}[H]
-		\centering
-		\caption[Preços de alimentos em dólares de 1950-1952 a 1995-1997.]{Preços de alimentos em dólares de 1950-1952 a 1995-1997~\citep{DET70}.}
-		\label{tab:tab1}
-		\begin{tabular}{lrrc} \hline
-			\textbf{Alimento} & \textbf{1950-1952} & \textbf{1995-1977} & \textbf{Variação} \\ \hline
-			Trigo    & 427,6     & 159,3     & -62,7\%  \\
-			Arroz    & 789,7     & 282,3     & -64,2\%  \\
-			Sorgo    & 328,7     & 110,9     & -66,2\%  \\
-			Milho    & 372,0     & 119,1     & -68,0\%  \\ \hline
-		\end{tabular}
-	\end{table}
-	
-    \begin{table}[H]
-      \centering
-      \footnotesize
-      \caption[Quadro comparativo de competitividade.]{Quadro comparativo de competitividade~\citep{MAL00}.}
-      \label{tab:tab2}
-      \begin{tabular}{|l|l|l|l|}
-      \hline
-      \rowcolor[HTML]{C0C0C0} 
-      \textbf{Empresa} & \textbf{\begin{tabular}[c]{@{}l@{}}Principal\\ Matéria-Prima\end{tabular}} & \textbf{\begin{tabular}[c]{@{}l@{}}Alternativas de Suprimentos\\ para a Principal Matéria-Prima\end{tabular}} & \textbf{Flexibilidade} \\ \hline
-      Copesul          & Nafta                                                                      & Disponibilidade de produto na Argentina                                                                       & 45\% condensado e GLP  \\ \hline
-      Copesul          & Nafta                                                                      & Alternativas Venezuela e Argélia                                                                              & Inexistente            \\ \hline
-      PQU              & Nafta                                                                      & Único fornecedor                                                                                              & Inexistente            \\ \hline
-      Rio Polímeros    & Etano                                                                      & Único fornecedor                                                                                              & Inexistente            \\ \hline
-      Baía Blanca      & Etano                                                                      & Projeto Mega / Única Opção                                                                                    & Inexistente            \\ \hline
-      Baía Roja        & OMG                                                                        & Oh Long Johnson                                                                                               & 100\%                  \\ \hline
-      \end{tabular}
-    \end{table}
-	
-	\item \textbf{Figuras}: adota-se uma simplificação relativa à Norma ABNT, não fazendo diferença entre figuras e gráficos. Ambos os casos devem ser considerados figuras. Pseudocódigos ou trechos de código-fonte também devem ser referenciados como figuras. A legenda deve ser centralizada, não usar negrito, e deve estar posicionada sob a figura. Exemplos podem ser visualizados na \cref{fig:fig1}, na \cref{fig:fig2} e na \cref{fig:codigoc} (ou nas \cref{fig:fig1,fig:fig2,fig:codigoc}). Para ignorar citações nas legendas nas listas de figuras e de tabelas, deve-se adicionar uma legenda reduzida como primeiro argumento no comando \textit{caption} sem a citação. Um exemplo pode ser visto na descrição da \cref{fig:fig1}. Agora, um exemplo de figura de dimensões grandes ou maior resolução, ajustada para ser exibida exatamente a largura entre margens, como mostra a \cref{fig:conceito4}. E, por fim, a \cref{fig:lis} mostra um exemplo de inserção de subfiguras, apresentados pela \cref{fig:lis}\subref{fig:lis1} e pela \cref{fig:lis}\subref{fig:lis2};
-	
-	\begin{figure}[htb!]
-		\centering
-		\includegraphics[width=\textwidth]{fig/PPGCA_logo_UPF_10anos_web-01}
-		\caption[Banner de divulgação dos 10 anos do PPGCA.]
-		{\label{fig:conceito4}Banner de divulgação dos 10 anos do PPGCA.}%
-	\end{figure}
+O IoT-23 é o principal conjunto de dados utilizado neste trabalho. Trata-se
+de um dataset de larga escala e disponível publicamente, contendo tráfego de
+rede rotulado de dispositivos IoT reais, capturado no Stratosphere Laboratory
+da Universidade Técnica Tcheca em Praga. É o primeiro dataset a combinar
+execução real de malware em dispositivos IoT físicos com tráfego benigno,
+tornando-o representativo de cenários reais de ameaças.
 
-        \todo[inline]{Este comando é útil para deixar comentários bem visíveis no texto}
+O IoT-23 contém 20 capturas de tráfego malicioso executado em dispositivos
+IoT e 3 capturas de tráfego benigno, totalizando 23 cenários. Foi publicado
+em janeiro de 2020, com capturas realizadas entre 2018 e 2019 no Stratosphere
+Laboratory. Seu objetivo é oferecer um dataset de infecções reais de malware
+em IoT e tráfego benigno para que pesquisadores desenvolvam algoritmos de
+aprendizado de máquina.
 
-        % OBS.: ao invés de usar figuras matriciais de alta resolução (JPG, PNG), ou figuras vetoriais em formato EPS, você pode incluir versões das figuras no formato PDF. Mantém a alta qualidade, e favorece um melhor desempenho durante a compilação do documento.
-	\begin{figure}[!htb]
-		\begin{center}
-			\subfigure[Flor de lis azul.]{
-				\label{fig:lis1}
-				\includegraphics[width=.25\textwidth]{fig/royal-blue-fleur-de-lis.eps}
-			}
-			\subfigure[Flor de lis vermelha.]{
-				\label{fig:lis2}
-				\includegraphics[width=.25\textwidth]{fig/blood-red-fleur-de-lis.eps}
-			}
-		\end{center}
-		\caption{Duas flores de lis.}
-		\label{fig:lis}
-	\end{figure}
-	
-	\todo[inline]{É possível criar uma relação desses comentários. Há um exemplo logo após o sumário.}
-    
-	% Um exemplo de figura
-	\begin{figure}[htb!]
-		\centering\includegraphics[scale=0.25]{fig/logo-color-horizontal-complemento.png}
-		\caption[Logotipo da Universidade (adaptado do site da UPF).]
-		{\label{fig:fig1}Logotipo da Universidade (adaptado do site da UPF)~\citep{UPF24}.}%
-	\end{figure}
+Os cenários de ataque envolvem a execução de malwares como Mirai, Torii,
+Hide and Seek, Hajime e outros em dispositivos como Raspberry Pi. O dataset
+fornece tráfego de rede rotulado, com características detalhadas e rotulagem
+baseada em análise humana, disponibilizando tanto arquivos \texttt{.pcap}
+quanto logs de conexão para análise.
 
-    
-	% Um exemplo de figura
-	\begin{figure}[htb!]
-		\centering\includegraphics[width=9.18cm,height=4.91cm]{fig/graficoBonitinho.jpg}
-		\caption%[This figure has a shorter caption now]%
-		{\label{fig:fig2}Uma imagem qualquer de um gráfico de barras.}%
-	\end{figure}
-    
-    \todo[inline]{Nas estruturas como figuras, tabelas, algoritmos, listas ou equações é interessante que elas sejam citadas e após comentadas}
-    	
-	\begin{figure}[htb!]
-		\centering
-		\begin{tabular}{rl} \hline
-			\texttt{1.} & \texttt{\#include <iostream>}  \\
-			\texttt{2.} & \texttt{using namespace std;}  \\
-			\texttt{3.} & \texttt{int main()}  \\
-			\texttt{4.} & \texttt{\{}  \\
-			\texttt{5.} & \texttt{\hspace{2ex}cout  {<}{<} "Hello World!"~{<}{<} endl;}  \\
-			\texttt{6.} & \texttt{\hspace{2ex}return 0;}  \\
-			\texttt{7.} & \texttt{\}}  \\ \hline
-		\end{tabular}
-		\caption%[This figure has a shorter caption now]%
-		{\label{fig:codigoc}Código-fonte C++.}%
-            %\vspace{19.6cm} % espaço vertical inserido para evitar que a figura fique posicionada no centro de uma página separada, e não no topo.        
-	\end{figure}
+Os três tipos de tráfego malicioso mais comuns no dataset são:
+PartOfAHorizontalPortScan (213.852.924 fluxos), Okiru (47.381.241 fluxos)
+e DDoS (19.538.713 fluxos). Essa distribuição desbalanceada é uma
+característica relevante a ser tratada durante o pré-processamento dos
+dados neste trabalho.
 
-    Um exemplo de comentário sobre a \cref{fig:codigoc} é que o código fonte apresentado representa um ... \todo{add que ....}
+Embora o IoT-23 permaneça amplamente utilizado como benchmark na
+literatura, datasets mais recentes têm sido propostos para cobrir um
+espectro maior de ataques. O CIC-IoT2023, desenvolvido pelo Canadian
+Institute for Cybersecurity, contempla 33 tipos de ataque organizados em
+6 categorias, capturados com dispositivos IoT reais como agentes atacantes
+\citep{Neto2023CICIoT}. A adoção do IoT-23 neste trabalho justifica-se
+pela existência de baseline direto na literatura nacional — especialmente
+\citep{SouzaArima2024} — o que permite comparação direta dos resultados
+obtidos.
 
-    \todo[inline]{O exemplo acima é outro de uso do todo. Usar ele com cuidado}
-    
-	\item \textbf{Equações e fórmulas}: equações e fórmulas devem ser colocadas em uma nova linha, centralizadas e numeradas consecutivamente para fins de referência, como pode ser observado na \cref{eq:baskara}.
-	
-	% Você pode montar suas equações on-line e gerar o código. Alguns links para ajudar:
-	% https://latexeditor.lagrida.com
-	% https://latex.codecogs.com/eqneditor/editor.php
-	
-	\begin{equation}\label{eq:baskara}
-		x= \frac{-b\pm\sqrt{b^2-4ac}}{2a}
-	\end{equation}
-\end{enumerate}
+O dataset está disponível gratuitamente para download em:
+\url{https://www.stratosphereips.org/datasets-iot23}
+\citep{IoT23Dataset2020}.
 
-    Outro exemplo de comentário é que a \cref{eq:baskara} representa a Equação de Baskara. O valor que deve ser calculada a raiz quadrada também é conhecido com delta.
-    
-    \todo[inline]{Os exemplos de comentários colocados são bem triviais. Use ele com maior qualidade dos comentários inseridos}
+% ══════════════════════════════════════════════════
+\section{Trabalhos Relacionados}\label{sec:relacionados}
 
-Dados estatísticos ou numéricos também podem ser adicionados no texto, usando um bloco com o símbolo \$ ($12,5 \pm 1,8$). Outros exemplos de referências cruzadas podem ser realizados. Exemplos: \cref{chap:revisao}.
+Esta seção apresenta os principais trabalhos que investigaram a detecção de ataques em redes IoT com uso de ML, com ênfase em publicações nacionais recentes, especialmente aquelas apresentadas no Simpósio Brasileiro de Segurança da Informação e de Sistemas Computacionais (SBSeg).
+
+\textbf{Souza e Arima (2024)} \citep{SouzaArima2024} avaliaram algoritmos de ML para detecção de malware IoT utilizando o mesmo dataset IoT-23 adotado neste trabalho. Os autores compararam \textit{Random Forest}, SVM, Árvore de Decisão e CNN, com o \textit{Random Forest} alcançando a maior acurácia geral e a CNN obtendo boas métricas de precisão e F1-\textit{Score}. Este trabalho constitui o principal \textit{baseline} para os experimentos aqui propostos, sendo o ponto de comparação direto dos resultados a serem obtidos.
+
+\textbf{Bochie et al. (2020)} \citep{Bochie2020} realizaram uma avaliação ampla de técnicas de ML e aprendizado profundo para detecção de ataques em redes IoT, utilizando \textit{traces} públicos de tráfego. Os autores investigaram modelos como \textit{Random Forest}, SVM, MLP e \textit{Autoencoders}, concluindo que abordagens de aprendizado profundo podem superar os algoritmos clássicos em cenários com maior variedade de ataques. O trabalho é relevante para contextualizar as limitações das abordagens supervisionadas tradicionais.
+
+\textbf{Alfahaid et al. (2025)} \citep{Alfahaid2025} publicaram um survey abrangente sobre soluções de ML para segurança em redes IoT, cobrindo publicações de 2020 a 2024. O estudo analisa técnicas como ML, aprendizado profundo, \textit{ensemble learning}, \textit{transfer learning} e \textit{federated learning} aplicadas a problemas de segurança IoT, incluindo detecção de intrusão, proteção de privacidade e gerenciamento de confiança em diferentes domínios como saúde, cidades inteligentes e veículos conectados. Este survey fornece a base teórica mais atualizada para o presente trabalho.
+
+\textbf{Rahman et al. (2025)} \citep{Rahman2025} apresentaram um survey sobre sistemas de detecção de intrusão em redes IoT, discutindo as principais abordagens, datasets utilizados e desafios em aberto na área. O trabalho é útil para contextualizar o presente trabalho no estado da arte internacional e identificar lacunas de pesquisa ainda não exploradas.
+
+A \cref{tab:relacionados} sintetiza os principais trabalhos relacionados, destacando os algoritmos utilizados, os datasets e os resultados reportados.
+
+A partir da análise dos trabalhos relacionados, observa-se que, embora existam estudos comparativos de algoritmos de ML em redes IoT, ainda há espaço para investigar com maior profundidade quais modelos apresentam melhor equilíbrio entre acurácia, tempo de inferência e robustez a classes desbalanceadas no contexto específico do dataset IoT-23 -- lacuna que este trabalho se propõe a preencher.
+
+\begin{table}[ht]
+\centering
+\caption{Síntese dos principais trabalhos relacionados.}
+\label{tab:relacionados}
+\begin{tabular}{p{3.5cm}p{3.5cm}p{2.5cm}p{4cm}}
+\hline
+\textbf{Trabalho} & \textbf{Algoritmos} & \textbf{Dataset} & \textbf{Principal resultado} \\
+\hline
+Souza e Arima (2024) & RF, SVM, DT, CNN & IoT-23 & RF maior acurácia geral \\
+Bochie et al. (2020) & RF, SVM, MLP, Autoencoder & Traces IoT públicos & DL supera ML clássico em ataques variados \\
+Alfahaid et al. (2025) & Survey (ML, DL, FL) & Múltiplos & Revisão de tendências 2020--2024 \\
+Rahman et al. (2025) & Survey (IDS em IoT) & Múltiplos & Desafios e lacunas em aberto \\
+\hline
+\end{tabular}
+\end{table}
