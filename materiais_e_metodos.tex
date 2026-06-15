@@ -1,23 +1,65 @@
 \chapter{Materiais e métodos}\label{chap:materiais}
 
-Aqui deve ser descrito com quais elementos e como vai realizar seu trabalho final. Dois itens imprescindíveis são a validação e o cronograma.
+Este capítulo apresenta os materiais, ferramentas e procedimentos metodológicos que serão utilizados para o desenvolvimento do presente trabalho. São descritas as ferramentas de software empregadas, a metodologia adotada para a implementação e avaliação dos algoritmos de aprendizado de máquina, os procedimentos de validação dos resultados e o cronograma de atividades previsto para a execução do Trabalho de Conclusão de Curso.
 
 \section{Ferramentas}
-Descreva aqui as ferramentas a serem utilizadas no desenvolvimento do Projeto. Caso ele utilize algum hardware específico, adicione sua descrição aqui.
+
+Para o desenvolvimento deste trabalho, serão utilizadas ferramentas de software amplamente adotadas pela comunidade científica em tarefas de aprendizado de máquina e análise de dados, todas de caráter gratuito e código aberto.
+
+A linguagem de programação utilizada será o \textit{Python}, em sua versão 3, devido à sua ampla adoção em projetos de ciência de dados e à disponibilidade de bibliotecas especializadas. Para o processamento e manipulação dos dados do conjunto IoT-23, será utilizada a biblioteca \textit{Pandas}, que permite a leitura, limpeza e transformação de grandes volumes de dados tabulares de forma eficiente.
+
+A implementação dos algoritmos de aprendizado de máquina supervisionado (Random Forest, Support Vector Machine e Árvore de Decisão) será realizada com auxílio da biblioteca \textit{Scikit-learn}, que oferece implementações consolidadas desses algoritmos, além de funções para divisão dos conjuntos de treino e teste, normalização dos dados e cálculo das métricas de avaliação. Para a implementação da Rede Neural Convolucional (CNN), será utilizada a biblioteca \textit{Keras}, em conjunto com o \textit{TensorFlow} como backend.
+
+A visualização dos resultados, incluindo gráficos comparativos de desempenho entre os algoritmos e matrizes de confusão, será realizada com as bibliotecas \textit{Matplotlib} e \textit{Seaborn}.
+
+Em relação ao ambiente de execução, será utilizado o \textit{Google Colaboratory} (Google Colab), que oferece um ambiente gratuito em nuvem com suporte a notebooks Jupyter e acesso a recursos de processamento gráfico (GPU), o que viabiliza o treinamento do modelo de CNN sem a necessidade de hardware dedicado local.
+
+Por fim, o conjunto de dados utilizado será o IoT-23, descrito na Seção \ref{sec:dataset}, disponibilizado publicamente pelo \textit{Stratosphere Laboratory} da \textit{Czech Technical University}.
 
 \section{Metodologia para o desenvolvimento}
-Detalhar cada uma das etapas a serem realizadas no desenvolvimento. Caso faça protótipos, descreva a quantidade deles e a funcionalidade buscada com cada um.
 
-\section{Validação}
-Descrever como se pretende validar a solução a ser criada/desenvolvida/melhorada no trabalho. Caso pretenda realizar experimentos, descreva a metodologia de execução e de coleta dos resultados. Descreva como planeja criar a arquitetura para execução dos testes de validação. Deixe claro as métricas a serem usadas na avaliação e validação.
+O desenvolvimento deste trabalho será dividido em cinco etapas principais, descritas a seguir.
 
-Se a validação contar com formulários, aplicados a terceiros, descrever o(s) formulário(s) a ser utilizado (com referências caso seja validado).
+\textbf{Etapa 1 — Seleção e pré-processamento dos dados.} Serão selecionados os cenários do dataset IoT-23 que contemplem os ataques mais frequentes (PortScan, DDoS e Okiru, entre outros), além das capturas de tráfego benigno, garantindo representatividade das principais categorias presentes no dataset. Em seguida, será realizado o pré-processamento dos dados, incluindo a remoção de valores ausentes ou inconsistentes, a codificação de atributos categóricos e a normalização dos atributos numéricos.
+
+Devido à distribuição desigual entre as classes presentes no dataset IoT-23, na qual classes como PortScan e Okiru são amplamente majoritárias em relação a outras categorias de ataque e ao tráfego benigno, será aplicada a técnica de sobreamostragem sintética \textit{SMOTE} (\textit{Synthetic Minority Over-sampling Technique}) sobre o conjunto de treino, gerando exemplos sintéticos das classes minoritárias por meio de interpolação entre amostras vizinhas. Como alternativa ou complemento, poderá ser utilizado o parâmetro \texttt{class\_weight=`balanced'}, disponível nos modelos Random Forest, SVM e Árvore de Decisão do Scikit-learn, que ajusta o peso de cada classe na função de custo de forma inversamente proporcional à sua frequência. A escolha entre as duas abordagens, ou a combinação de ambas, será avaliada empiricamente durante a fase experimental, considerando seu impacto sobre as métricas de recall e F1-Score das classes minoritárias. É importante destacar que o balanceamento será aplicado exclusivamente sobre o conjunto de treino, de modo a não distorcer a distribuição real das classes no conjunto de teste.
+
+\textbf{Etapa 2 — Divisão dos dados e definição da tarefa de classificação.} O conjunto de dados pré-processado será dividido em subconjuntos de treino e teste, na proporção de 70\% e 30\%, respectivamente, utilizando-se a técnica de amostragem estratificada, de modo a preservar a proporção das classes em ambos os subconjuntos. Essa proporção foi escolhida por ser amplamente adotada em trabalhos da área de detecção de intrusão baseada em aprendizado de máquina, conforme observado em \cite{SouzaArima2024} e \cite{Bochie2020}, representando um equilíbrio adequado entre a quantidade de dados disponíveis para o treinamento dos modelos e a representatividade do conjunto reservado para avaliação.
+
+Os experimentos serão conduzidos em duas configurações de classificação, permitindo uma análise mais completa do problema: (i) uma tarefa \textbf{binária}, na qual o objetivo é distinguir entre tráfego benigno e tráfego malicioso, independentemente do tipo específico de ataque; e (ii) uma tarefa \textbf{multiclasse}, na qual cada tipo de ataque presente no dataset (PortScan, DDoS, Okiru, C\&C, entre outros) é tratado como uma classe distinta, além da classe de tráfego benigno. A avaliação na configuração binária permite mensurar a capacidade geral dos modelos em detectar comportamento anômalo, enquanto a configuração multiclasse possibilita avaliar a capacidade de cada modelo em discriminar entre os diferentes tipos de ataque, informação relevante para a tomada de decisão em sistemas de resposta a incidentes.
+
+\textbf{Etapa 3 — Implementação dos modelos.} Serão implementados quatro modelos de aprendizado de máquina: Random Forest, Support Vector Machine (SVM), Árvore de Decisão e uma Rede Neural Convolucional (CNN). Os três primeiros modelos serão treinados utilizando diretamente os atributos do tráfego de rede extraídos do dataset, em formato tabular (vetores de características).
+
+Para a CNN, os dados serão convertidos em uma representação matricial bidimensional, de forma análoga a uma imagem. Cada amostra de tráfego, originalmente representada por um vetor de $n$ atributos numéricos (por exemplo, duração do fluxo, número de pacotes, número de bytes trocados, portas de origem e destino, entre outros), será reorganizada em uma matriz de dimensões fixas por meio do redimensionamento (\textit{reshape}) do vetor de atributos, com aplicação de \textit{zero-padding} quando necessário, conforme abordagens encontradas na literatura de detecção de intrusão com aprendizado profundo.
+
+\textbf{Etapa 4 — Ajuste de hiperparâmetros.} Para os modelos clássicos (Random Forest, SVM e Árvore de Decisão), será realizada uma busca de hiperparâmetros mais ampla, por meio da técnica de \textit{Grid Search} combinada com validação cruzada de 5 folds (\textit{5-fold cross-validation}), explorando, por exemplo, o número de estimadores e a profundidade máxima das árvores no Random Forest, o tipo de kernel e os parâmetros $C$ e $\gamma$ no SVM, e o critério de divisão e a profundidade máxima na Árvore de Decisão.
+
+Para a CNN, dado o elevado custo computacional do treinamento de redes neurais, a busca de hiperparâmetros será mais restrita, limitando-se a um conjunto reduzido de configurações pré-selecionadas (\textit{Random Search} com número limitado de combinações), variando-se principalmente o número e o tamanho dos filtros convolucionais, a taxa de aprendizado e o número de épocas de treinamento, com utilização de \textit{early stopping} para evitar treinamentos excessivamente longos. Nesse caso, a validação cruzada de 5 folds completa não será aplicada à CNN; em seu lugar, será utilizada uma divisão adicional do conjunto de treino em treino e validação (\textit{holdout}), de modo a reduzir o custo computacional do processo de ajuste sem comprometer a confiabilidade da seleção de hiperparâmetros.
+
+\textbf{Etapa 5 — Avaliação e comparação dos modelos.} Por fim, os quatro modelos, já com seus hiperparâmetros otimizados, serão avaliados sobre o conjunto de teste, e seus desempenhos serão comparados com base nas métricas descritas na Seção \ref{sec:validacao}, permitindo identificar qual algoritmo apresenta o melhor equilíbrio entre eficácia na detecção de ataques e custo computacional. Para verificar se as diferenças de desempenho observadas entre os modelos são estatisticamente significativas, será aplicado o teste de \textit{Wilcoxon} (teste não paramétrico para amostras pareadas) sobre os resultados obtidos nas execuções da validação cruzada, com nível de significância de 5\% ($\alpha = 0,05$), reforçando o rigor científico da comparação realizada.
+
+\section{Validação}\label{sec:validacao}
+
+A validação dos modelos desenvolvidos será realizada por meio de experimentos computacionais, conduzidos sobre o conjunto de teste obtido na Etapa 2 descrita na seção anterior, o qual não será utilizado em nenhuma etapa de treinamento ou ajuste dos modelos.
+
+Para cada um dos quatro algoritmos implementados, serão calculadas as seguintes métricas de avaliação:
+
+\begin{itemize}
+    \item \textbf{Acurácia}: proporção de classificações corretas em relação ao total de amostras avaliadas;
+    \item \textbf{Precisão}: proporção de instâncias classificadas como ataque que de fato correspondem a ataques reais;
+    \item \textbf{Recall (sensibilidade)}: proporção de ataques reais que foram corretamente identificados pelo modelo;
+    \item \textbf{F1-Score}: média harmônica entre precisão e recall, utilizada como métrica de equilíbrio entre essas duas medidas;
+    \item \textbf{Tempo de inferência}: tempo médio necessário para que o modelo classifique uma única amostra, calculado pela execução da etapa de predição sobre o conjunto de teste completo, dividindo-se o tempo total de execução pelo número de amostras avaliadas. A medição será realizada em ambiente controlado (Google Colab, sem uso concorrente de GPU/CPU por outros processos), repetindo-se o procedimento por múltiplas execuções e reportando-se a média e o desvio padrão dos tempos obtidos, em milissegundos por amostra. Essa métrica é relevante para avaliar a viabilidade de aplicação dos modelos em dispositivos IoT com recursos computacionais limitados.
+\end{itemize}
+
+Para os modelos clássicos (Random Forest, SVM e Árvore de Decisão), será utilizada validação cruzada de 5 folds (\textit{5-fold cross-validation}) durante a etapa de treinamento e ajuste de hiperparâmetros, com o objetivo de reduzir o risco de \textit{overfitting} e obter uma estimativa mais robusta do desempenho de cada modelo. As métricas de acurácia, precisão, recall e F1-Score serão calculadas como a média e o desvio padrão dos valores obtidos nos 5 folds. Para a CNN, conforme descrito na Etapa 4 da metodologia, será utilizada uma divisão em treino e validação (\textit{holdout}) em substituição à validação cruzada completa, devido ao custo computacional do treinamento de redes neurais.
+
+Os resultados obtidos para cada algoritmo serão organizados em tabelas comparativas e representados graficamente por meio de gráficos de barras e matrizes de confusão, permitindo uma análise visual do desempenho relativo entre os modelos avaliados. A partir dessa comparação, será possível discutir qual ou quais algoritmos apresentam maior adequação para a tarefa de detecção de ataques em redes IoT, considerando tanto a eficácia da classificação quanto o custo computacional associado.
 
 \section{Cronograma}\label{sec:cronograma}
 
-Deve-se incluir no cronograma apenas as atividades a serem desenvolvidas na execução do trabalho final. Não colocar as atividades já desenvolvidas na escrita da proposta.
-
-É sugerido que seja criado um cronograma com indicação de semanas dentro dos meses. Considere que cada mês possui quatro (4) semanas, Utilize um 'X' para delimitar cada um das semanas.
+O cronograma de atividades previsto para a execução deste Trabalho de Conclusão de Curso é apresentado na Tabela \ref{tab:cronograma}. As atividades de revisão bibliográfica não constam no cronograma, uma vez que já foram desenvolvidas durante a etapa de elaboração desta proposta.
+No mês de julho, as atividades de seleção e pré-processamento dos dados do conjunto IoT-23 serão iniciadas e concluídas até a primeira semana de agosto, contemplando a limpeza, normalização e balanceamento dos dados. Entre agosto e setembro, será realizada a implementação dos três modelos de aprendizado supervisionado tradicional (Random Forest, SVM e Árvore de Decisão), seguida pela implementação do modelo de Rede Neural Convolucional, que se estenderá até outubro devido à maior complexidade de configuração e treinamento. Em outubro e novembro, será conduzido o ajuste de hiperparâmetros dos quatro modelos, buscando otimizar seu desempenho. Na sequência, entre novembro e dezembro, serão executados os experimentos finais, com a coleta dos resultados e o cálculo das métricas de avaliação descritas na Seção \ref{sec:validacao}, seguidos pela análise e discussão comparativa dos modelos. Por fim, a elaboração do texto final do trabalho ocorrerá em paralelo às últimas etapas experimentais, e a defesa do trabalho está prevista para o mês de dezembro.
 
 \begin{table}[htb!]
 \centering
@@ -30,29 +72,21 @@ Deve-se incluir no cronograma apenas as atividades a serem desenvolvidas na exec
 \cline{2-7} 
 \rowcolor[HTML]{C0C0C0} 
 \multirow{-2}{*}{Atividades} & \multicolumn{1}{c|}{Jul} & \multicolumn{1}{c|}{Ago} & \multicolumn{1}{c|}{Set} & \multicolumn{1}{c|}{Out} & \multicolumn{1}{c|}{Nov} & Dez \\ \hline
-Atividade A            & \multicolumn{1}{c|}{XX}   & \multicolumn{1}{c|}{X}    & \multicolumn{1}{c|}{X}   & \multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{}    &   \\ 
+Seleção e pré-processamento dos dados & \multicolumn{1}{c|}{XXXX} & \multicolumn{1}{c|}{X} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \\
 \hline
-Atividade B            & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{X}    & \multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{X}    & \multicolumn{1}{c|}{}    &  \\
+Implementação dos modelos (RF, SVM, AD) & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{XXX} & \multicolumn{1}{c|}{X} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \\
 \hline
-Atividade C            & \multicolumn{1}{c|}{X}    & \multicolumn{1}{c|}{X}    & \multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{}    &   \\
+Implementação do modelo CNN & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{XXX} & \multicolumn{1}{c|}{X} & \multicolumn{1}{c|}{} & \\
 \hline
-Atividade D            & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{XXXX} & \multicolumn{1}{c|}{X}   & \multicolumn{1}{c|}{X}   & \multicolumn{1}{c|}{}    & X \\
+Ajuste de hiperparâmetros & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{XXX} & \multicolumn{1}{c|}{X} & \\
 \hline
-Atividade E            & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{X}   & \multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{}    &   \\
+Execução dos experimentos e coleta dos resultados & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{X} & \multicolumn{1}{c|}{XXX} & \\
 \hline
-Atividade F            & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{X}   & \multicolumn{1}{c|}{XXX} & \multicolumn{1}{c|}{X}    &   \\
+Análise e discussão dos resultados & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{XX} & XX \\
 \hline
-Atividade G            & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{X}    & \multicolumn{1}{c|}{X}    & X \\
+Elaboração do texto final & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{XX} & XX \\
 \hline
-Elaborar o texto final & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{X}    & \multicolumn{1}{c|}{X}    & X \\
-\hline
-Banca de defesa        & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{}     & \multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{}    & X \\
+Banca de defesa & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & X \\
 \hline
 \end{tabular}
 \end{table}
-
-No exemplo da Tabela \autoref{tab:cronograma}, no mês de julho a 'Atividade A' vai consumir duas semanas, no mês de Agosto a 'Atividade D' vai perdurar o mês todo e no mês de Setembro a 'Atividade F' vai levar três semanas.
-
-Procure descrever ao máximo o objetivo, abrangência e os procedimentos de cada atividade, em descrição abaixo da Tabela. \textbf{Uma atividade de revisão bibliográfica NÃO deve constar no cronograma.} Ela faz parte do seu projeto e deve ser realizada ainda durante a preparação da proposta.
-
-
