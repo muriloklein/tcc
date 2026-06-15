@@ -7,7 +7,6 @@ Esta seção apresenta os fundamentos teóricos e os principais estudos relacion
 
 A Internet das Coisas (\textit{Internet of Things} -- IoT) refere-se à interconexão de dispositivos físicos -- sensores, atuadores, câmeras, eletrodomésticos e equipamentos industriais -- à internet, permitindo a coleta, troca e análise de dados de forma automatizada \citep{Alfahaid2025}. A arquitetura IoT é tipicamente descrita em três camadas principais \citep{Alshahrani2020}:
 
-
 \begin{itemize}[leftmargin=5em]
     \item \textbf{Camada de percepção:} responsável pela coleta de dados do ambiente físico por meio de sensores e dispositivos embarcados. É a camada mais próxima do hardware e, portanto, mais suscetível a ataques físicos e de \textit{firmware};
     \item \textbf{Camada de rede:} responsável pela transmissão dos dados coletados. Utiliza protocolos como Wi-Fi, ZigBee, Bluetooth, LTE e 5G para comunicação sem fio, e protocolos de aplicação como MQTT (\textit{Message Queuing Telemetry Transport}), CoAP (\textit{Constrained Application Protocol}) e HTTP para troca de mensagens;
@@ -107,13 +106,13 @@ O dataset está disponível gratuitamente para download em:
 
 Esta seção apresenta os principais trabalhos que investigaram a detecção de ataques em redes IoT com uso de ML, com ênfase em publicações nacionais recentes, especialmente aquelas apresentadas no Simpósio Brasileiro de Segurança da Informação e de Sistemas Computacionais (SBSeg).
 
-\textbf{Souza e Arima (2024)} \citep{SouzaArima2024} avaliaram algoritmos de ML para detecção de malware IoT utilizando o mesmo dataset IoT-23 adotado neste trabalho. Os autores compararam \textit{Random Forest}, SVM, Árvore de Decisão e CNN, com o \textit{Random Forest} alcançando a maior acurácia geral e a CNN obtendo boas métricas de precisão e F1-\textit{Score}. Este trabalho constitui o principal \textit{baseline} para os experimentos aqui propostos, sendo o ponto de comparação direto dos resultados a serem obtidos.
+\cite{SouzaArima2024} avaliaram algoritmos de ML para detecção de malware IoT utilizando o mesmo dataset IoT-23 adotado neste trabalho. Os autores compararam \textit{Random Forest}, SVM, Árvore de Decisão e CNN, com o \textit{Random Forest} alcançando a maior acurácia geral e a CNN obtendo boas métricas de precisão e F1-\textit{Score}. Este trabalho constitui o principal \textit{baseline} para os experimentos aqui propostos, sendo o ponto de comparação direto dos resultados a serem obtidos.
 
-\textbf{Bochie et al. (2020)} \citep{Bochie2020} realizaram uma avaliação ampla de técnicas de ML e aprendizado profundo para detecção de ataques em redes IoT, utilizando \textit{traces} públicos de tráfego. Os autores investigaram modelos como \textit{Random Forest}, SVM, MLP e \textit{Autoencoders}, concluindo que abordagens de aprendizado profundo podem superar os algoritmos clássicos em cenários com maior variedade de ataques. O trabalho é relevante para contextualizar as limitações das abordagens supervisionadas tradicionais.
+\cite{Bochie2020} realizaram uma avaliação ampla de técnicas de ML e aprendizado profundo para detecção de ataques em redes IoT, utilizando \textit{traces} públicos de tráfego. Os autores investigaram modelos como \textit{Random Forest}, SVM, MLP e \textit{Autoencoders}, concluindo que abordagens de aprendizado profundo podem superar os algoritmos clássicos em cenários com maior variedade de ataques. O trabalho é relevante para contextualizar as limitações das abordagens supervisionadas tradicionais.
 
-\textbf{Alfahaid et al. (2025)} \citep{Alfahaid2025} publicaram um survey abrangente sobre soluções de ML para segurança em redes IoT, cobrindo publicações de 2020 a 2024. O estudo analisa técnicas como ML, aprendizado profundo, \textit{ensemble learning}, \textit{transfer learning} e \textit{federated learning} aplicadas a problemas de segurança IoT, incluindo detecção de intrusão, proteção de privacidade e gerenciamento de confiança em diferentes domínios como saúde, cidades inteligentes e veículos conectados. Este survey fornece a base teórica mais atualizada para o presente trabalho.
+\cite{Alfahaid2025} publicaram um survey abrangente sobre soluções de ML para segurança em redes IoT, cobrindo publicações de 2020 a 2024. O estudo analisa técnicas como ML, aprendizado profundo, \textit{ensemble learning}, \textit{transfer learning} e \textit{federated learning} aplicadas a problemas de segurança IoT, incluindo detecção de intrusão, proteção de privacidade e gerenciamento de confiança em diferentes domínios como saúde, cidades inteligentes e veículos conectados. Este survey fornece a base teórica mais atualizada para o presente trabalho.
 
-\textbf{Rahman et al. (2025)} \citep{Rahman2025} apresentaram um survey sobre sistemas de detecção de intrusão em redes IoT, discutindo as principais abordagens, datasets utilizados e desafios em aberto na área. O trabalho é útil para contextualizar o presente trabalho no estado da arte internacional e identificar lacunas de pesquisa ainda não exploradas.
+\cite{Rahman2025} apresentaram um survey sobre sistemas de detecção de intrusão em redes IoT, discutindo as principais abordagens, datasets utilizados e desafios em aberto na área. O trabalho é útil para contextualizar o presente trabalho no estado da arte internacional e identificar lacunas de pesquisa ainda não exploradas.
 
 A \cref{tab:relacionados} sintetiza os principais trabalhos relacionados, destacando os algoritmos utilizados, os datasets e os resultados reportados.
 
@@ -127,10 +126,10 @@ A partir da análise dos trabalhos relacionados, observa-se que, embora existam 
 \hline
 \textbf{Trabalho} & \textbf{Algoritmos} & \textbf{Dataset} & \textbf{Principal resultado} \\
 \hline
-Souza e Arima (2024) & RF, SVM, DT, CNN & IoT-23 & RF maior acurácia geral \\
-Bochie et al. (2020) & RF, SVM, MLP, Autoencoder & Traces IoT públicos & DL supera ML clássico em ataques variados \\
-Alfahaid et al. (2025) & Survey (ML, DL, FL) & Múltiplos & Revisão de tendências 2020--2024 \\
-Rahman et al. (2025) & Survey (IDS em IoT) & Múltiplos & Desafios e lacunas em aberto \\
+\cite{SouzaArima2024} & RF, SVM, DT, CNN & IoT-23 & RF maior acurácia geral \\
+\cite{Bochie2020} & RF, SVM, MLP, Autoencoder & Traces IoT públicos & DL supera ML clássico em ataques variados \\
+\cite{Alfahaid2025} & Survey (ML, DL, FL) & Múltiplos & Revisão de tendências 2020--2024 \\
+\cite{Rahman2025} & Survey (IDS em IoT) & Múltiplos & Desafios e lacunas em aberto \\
 \hline
 \end{tabular}
 \end{table}
