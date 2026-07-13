@@ -1,0 +1,9 @@
+# dados
+dados/raw/
+dados/processed/
+*.pcap
+*.log
+
+# ambiente
+__pycache__/
+.ipynb_checkpoints/
