@@ -1,6 +1,7 @@
 # dados
 dados/raw/
 dados/processed/
+*.parquet
 *.pcap
 *.log
 
