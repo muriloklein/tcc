@@ -3,11 +3,11 @@
 ## Etapa 1 — Seleção e pré-processamento dos dados
 **Prazo da proposta: julho → 1ª semana de agosto**
 
-- Selecionar cenários do IoT-23 com PortScan, DDoS e Okiru + os 3 cenários de tráfego benigno
-- Remover atributos identificadores (IPs, timestamps brutos) e campos com risco de data leakage
-- Tratar valores ausentes/inconsistentes, codificar atributos categóricos, normalizar atributos numéricos
-- Analisar exploratoriamente a distribuição de classes (confirmar o desbalanceamento: PortScan e Okiru majoritários)
-- Decidir entre SMOTE, `class_weight='balanced'`, ou combinação — avaliado empiricamente sobre o conjunto de treino
+- Selecionar cenários do IoT-23 com PortScan, DDoS e Okiru + os 3 cenários de tráfego benigno ✅
+- Remover atributos identificadores (IPs, timestamps brutos) e campos com risco de data leakage ✅
+- Tratar valores ausentes/inconsistentes, codificar atributos categóricos, normalizar atributos numéricos 🔜
+- Analisar exploratoriamente a distribuição de classes (confirmar o desbalanceamento: PortScan e Okiru majoritários) ✅
+- Decidir entre SMOTE, `class_weight='balanced'`, ou combinação — avaliado empiricamente sobre o conjunto de treino . 🔜
 
 ## Etapa 2 — Divisão dos dados e definição da tarefa
 **Prazo: início de agosto (junto com o fim da Etapa 1)**
