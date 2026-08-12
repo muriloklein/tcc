@@ -195,3 +195,17 @@ Consequência prática pro seu experimento
 Um sinal isolado tão forte pode fazer seus modelos (principalmente Árvore de Decisão e Random Forest) alcançarem acurácia muito alta rapidamente, quase "trapaceando" ao aprender basicamente essa regra de protocolo, sem precisar generalizar padrões mais sutis. Vale, mais pra frente (na Etapa 5, análise de importância de features), checar se proto_tcp/proto_udp aparecem como as features de maior peso — se sim, isso confirma essa hipótese e vira uma discussão rica no relatório sobre o que o modelo "realmente aprendeu".
 
 🔶 Ausentes / codificação / normalização — você marcou certo com o losango: 2 de 3 estão prontos (ausentes ✅, codificação ✅), mas normalização ainda não foi feita — e lembra que isso é intencional, não esquecimento: ela só pode acontecer depois do split treino/teste (Etapa 2), senão vaza estatística do teste pro treino. Não dá pra marcar esse item como concluído nem pendente isolado — ele está corretamente bloqueado até a próxima etapa.
+
+Um padrão interessante que apareceu nos números (conectado com o que já descobrimos)
+
+Repare que várias colunas (duration, orig_bytes, missed_bytes, orig_pkts, resp_pkts) têm os percentis 25%, 50% e 75% praticamente idênticos, mas o max é um valor bem alto (ex: orig_pkts vai de -0,0075 na mediana até 266 no máximo). Isso é exatamente o reflexo do padrão "zero-inflacionado" que já vimos no Gráfico 2a — a maioria das linhas (ataques com duração/bytes zerados) empilha num único valor, e só uma minoria de conexões "reais" se espalha em valores altos, formando uma cauda longa.
+
+Isso não invalida a normalização, mas é bom você saber: StandardScaler funciona bem quando os dados são razoavelmente simétricos; com essa concentração extrema, ele ainda centraliza corretamente (média 0, desvio 1), mas a maior parte dos pontos fica espremida perto de um único valor, enquanto poucos outliers "esticam" a escala. Isso não é um erro seu — é a natureza desse dataset —, mas vale mencionar essa observação na Seção de EDA/metodologia como uma característica identificada dos dados.
+
+
+------------------------------------------------------------------------------------
+
+Vale documentar dois pontos na Seção 4.4 (Limitações) para quando escrever o relatório:
+
+Duas classes (okiru, ddos) têm redundância extrema de features nos dados brutos — possível característica do próprio tráfego automatizado desses malwares.
+A separabilidade quase perfeita entre benigno/malicioso neste recorte de cenários pode não generalizar para tráfego IoT mais heterogêneo ou ataques mais sofisticados — os resultados são específicos a esse conjunto de cenários.

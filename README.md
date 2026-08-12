@@ -12,8 +12,8 @@
 ## Etapa 2 — Divisão dos dados e definição da tarefa
 **Prazo: início de agosto (junto com o fim da Etapa 1)**
 
-- Split estratificado 70/30 (treino/teste)
-- Preparar as duas configurações de classificação: binária (benigno vs. malicioso) e multiclasse (por tipo de ataque)
+- Split estratificado 70/30 (treino/teste) ✅
+- Preparar as duas configurações de classificação: binária (benigno vs. malicioso) e multiclasse (por tipo de ataque) ✅
 
 ## Etapa 3 — Implementação dos modelos
 **Prazo: agosto → outubro**
