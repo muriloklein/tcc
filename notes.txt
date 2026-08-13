@@ -234,3 +234,6 @@ Isso é um achado genuinamente interessante para a Seção de Discussão: os doi
 
 
 A confusão ddos ↔ portscan não é uma característica inseparável dos dados — é uma limitação específica do SVM sem hiperparâmetros ajustados. Tanto RF quanto Árvore de Decisão (duas famílias baseadas em splits/árvores) separam essa fronteira sem dificuldade; só o SVM (baseado em margem/kernel RBF padrão) tropeça nela. Isso é um achado de comparação genuinamente interessante pra Seção de Discussão: sugere que a fronteira entre ddos e portscan tem uma geometria que árvores capturam bem com splits simples, mas que o kernel RBF sem ajuste não encontra — bom candidato a melhorar na Etapa 4 (Grid Search de C/gamma).
+
+
+Etapa 1: completa, incluindo duas correções que não estavam previstas (vazamento por duplicatas, e a inversão da ordem de amostragem). Bom material extra pra Seção de Limitações/Metodologia.
