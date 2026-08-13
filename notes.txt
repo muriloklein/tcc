@@ -209,3 +209,28 @@ Vale documentar dois pontos na Seção 4.4 (Limitações) para quando escrever o
 
 Duas classes (okiru, ddos) têm redundância extrema de features nos dados brutos — possível característica do próprio tráfego automatizado desses malwares.
 A separabilidade quase perfeita entre benigno/malicioso neste recorte de cenários pode não generalizar para tráfego IoT mais heterogêneo ou ataques mais sofisticados — os resultados são específicos a esse conjunto de cenários.
+
+
+Novo ponto — Separabilidade quase perfeita entre classes neste recorte de cenários
+
+Após a correção do vazamento por duplicatas (ver ponto anterior sobre os 40,2% de duplicatas) e a correção na ordem do pipeline de amostragem (deduplicar por classe antes de aplicar o teto de amostragem, preservando a diversidade real de okiru: 2 → 621 linhas únicas), o Random Forest treinado nos dados corrigidos obteve F1 ≈ 1,00 tanto na tarefa binária quanto na multiclasse, com apenas 3 erros em 19.630 amostras de teste (multiclasse).
+
+Validação feita antes de aceitar o resultado como legítimo (não vazamento):
+
+Sobreposição treino/teste confirmada em 0 após as correções.
+feature_importances_ do modelo mostrou importância distribuída entre várias features fisicamente plausíveis (history_S, proto_tcp, proto_udp, history_D, duration, entre outras), sem nenhuma coluna isolada dominando — padrão inconsistente com vazamento residual.
+As features no topo fazem sentido de rede: tráfego malicioso automatizado tende a não completar handshake TCP (history_S) e ser majoritariamente TCP, enquanto o benigno tem mix de protocolos — achado que já havia aparecido na EDA (Gráfico 3).
+
+Interpretação e limitação a documentar: a separabilidade quase perfeita é provavelmente real, mas específica a este recorte de 6 cenários do IoT-23 (3 de ataque + 3 honeypots benignos). Não necessariamente generalizável a tráfego IoT mais heterogêneo ou a técnicas de ataque mais sofisticadas/evasivas. Vale registrar como limitação explícita na Seção 4.4 do relatório, e comparar com a magnitude dos resultados do baseline (Souza and Arima, 2024) para contextualizar se a diferença chama atenção.
+
+
+ddos está sendo confundido com partofahorizontalportscan, não com benign. Dos 67 exemplos reais de ddos, o modelo acertou 31 e classificou 36 como portscan (mais da metade!). Isso explica o recall de 0,46 (31/67).
+
+Faz bastante sentido do ponto de vista de rede: DDoS e PortScan neste dataset provavelmente compartilham características muito parecidas — conexões curtas/instantâneas, volume baixo de dados por conexão, TCP, sem handshake completo (o padrão history_S que apareceu como feature importante). São comportamentos de "varredura rápida" que, sem um kernel bem ajustado, o SVM tem dificuldade de separar — já a estrutura de árvores do RF parece conseguir capturar alguma nuance mais fina entre os dois (talvez volume exato de pacotes, ou porta de destino específica).
+
+Também dá pra notar que benign teve 16 casos confundidos com portscan (e 4 com ddos) — pequeno, mas no mesmo eixo de confusão.
+
+Isso é um achado genuinamente interessante para a Seção de Discussão: os dois algoritmos discriminam essas duas classes de forma bem diferente, e isso pode ser um indício real sobre a similaridade estrutural entre DDoS e PortScan neste recorte de tráfego, não só uma fraqueza aleatória do SVM. Vale a pena guardar essa observação (com o número: 36/67 = 54% dos ddos virando portscan) para comparar com o comportamento da Árvore de Decisão e da CNN mais adiante — se o padrão se repetir nos outros modelos, é ainda mais forte; se só o SVM tiver esse problema, aponta pra questão de hiperparâmetro (Etapa 4) mais do que separabilidade real dos dados.
+
+
+A confusão ddos ↔ portscan não é uma característica inseparável dos dados — é uma limitação específica do SVM sem hiperparâmetros ajustados. Tanto RF quanto Árvore de Decisão (duas famílias baseadas em splits/árvores) separam essa fronteira sem dificuldade; só o SVM (baseado em margem/kernel RBF padrão) tropeça nela. Isso é um achado de comparação genuinamente interessante pra Seção de Discussão: sugere que a fronteira entre ddos e portscan tem uma geometria que árvores capturam bem com splits simples, mas que o kernel RBF sem ajuste não encontra — bom candidato a melhorar na Etapa 4 (Grid Search de C/gamma).
