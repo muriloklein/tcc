@@ -237,3 +237,28 @@ A confusão ddos ↔ portscan não é uma característica inseparável dos dados
 
 
 Etapa 1: completa, incluindo duas correções que não estavam previstas (vazamento por duplicatas, e a inversão da ordem de amostragem). Bom material extra pra Seção de Limitações/Metodologia.
+
+Modelos binários e multiclasse (RF/AD) — estáveis, resultado confirmado
+Desvios padrão minúsculos em todos (0,0002 a 0,0034). Isso descarta a hipótese de que o F1 alto era "sorte do split" — os modelos generalizam de forma consistente entre diferentes divisões dos dados. Pode considerar esses 5 resultados validados.
+SVM multiclasse — a instabilidade agora tem números por trás
+Olha a diferença de escala do desvio: 0,0232, cerca de 7 a 100 vezes maior que os outros modelos. E o range entre folds é grande — de 0,885 a 0,957. Isso não é mais só "o SVM errou o ddos naquele teste específico": é um padrão que se repete, com intensidade variável, em praticamente todos os folds. Reforça estatisticamente a suspeita: o SVM com hiperparâmetros padrão tem uma fraqueza real e sistemática pra separar ddos/portscan, não um acaso do split — e é um candidato forte pra melhorar bastante com o Grid Search de C/gamma na Etapa 4.
+Bom achado pra guardar com esses números exatos para a Seção de Discussão.
+
+O salto do SVM multiclasse é o achado mais forte aqui — quase 3.000 vezes mais lento que a Árvore de Decisão, e ~20 vezes mais lento que o próprio SVM binário. Isso tem uma explicação técnica direta: o SVC do scikit-learn, para multiclasse, usa por padrão a estratégia "um-contra-um" (one-vs-one) — em vez de treinar/avaliar 1 classificador, ele monta 
+(
+6
+2
+)
+=
+15
+(
+2
+6
+	​
+
+)=15 classificadores binários internos e combina os votos. Cada predição precisa passar pelos 15. É por isso que o custo explode desproporcionalmente.
+
+Isso é ótimo material pra Seção de Discussão: reforça, com números concretos, a limitação prática de usar SVM multiclasse em dispositivo IoT com recursos restritos — mesmo que o F1 fosse bom, o custo de inferência por si só já desqualificaria o SVM multiclasse desse cenário de uso, o que é uma conclusão relevante e vai além só da acurácia.
+
+Curiosidade menor: RF multiclasse ficou mais rápido que RF binário (0,0051 vs 0,0095 ms) — provavelmente as árvores do multiclasse ficaram um pouco mais rasas/simples. Não é motivo de preocupação, só uma observação.
+
