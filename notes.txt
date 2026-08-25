@@ -262,3 +262,10 @@ Isso é ótimo material pra Seção de Discussão: reforça, com números concre
 
 Curiosidade menor: RF multiclasse ficou mais rápido que RF binário (0,0051 vs 0,0095 ms) — provavelmente as árvores do multiclasse ficaram um pouco mais rasas/simples. Não é motivo de preocupação, só uma observação.
 
+--------------------------------------------------
+
+Minhas Anotações:
+- Mas se CNN é uma rede neural especializada em processar e analisar dados visuais e de imagens por que usa-la nesse projeto que envolve apenas dados de rede?
+
+O motivo da escolha desses algoritmos de ML se deu pela sua relevância e popularidade na literatura para problemas de classificação, especialmente na área de cibersegurança.
+
