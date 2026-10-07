@@ -1,242 +1,135 @@
-# Pontos para discutir com o Prof. Trentin — Etapa 1 (TCC II)
-
-Lembrete de decisões tomadas/pendentes desde a proposta original (TCC I),
-para validar ou ajustar formalmente com o orientador.
+# Pontos para avaliar
 
 ---
 
 ## 1. Seleção de cenários — mudança em relação à proposta original
 
-**O que mudou:** a proposta falava em selecionar cenários "que contemplem os
-ataques mais frequentes... além das capturas de tráfego benigno", sem
-detalhar quais exatamente. Na prática, a escolha foi:
-
-- **Capture-34-1** (Mirai) → DDoS + PortScan
-- **Capture-9-1** (Hajime) → PortScan
-- **Capture-36-1** (Okiru) → Okiru
-- **Capture-4-1** (Honeypot) → Benign
-
-**Por que essa combinação, e não 1 cenário só:** cenários maliciosos "completos"
-(ex. Capture-17-1, Capture-43-1) misturam tráfego benigno com tráfego do
-*mesmo dispositivo infectado* em momentos de calmaria — não é benigno "de
-verdade". Optou-se por usar um cenário Honeypot (dispositivo nunca infectado)
-como fonte de Benign, separado dos cenários maliciosos.
-
-**Perguntar ao orientador:** essa lógica de separar "fonte de ataque" e
-"fonte de benigno" em cenários diferentes é aceitável metodologicamente, ou
-ele prefere que benigno e malicioso venham do mesmo cenário/dispositivo?
+A proposta falava em selecionar cenários "que contemplem os ataques mais frequentes... além das capturas de tráfego benigno", sem
+detalhar quais exatamente.
+Escolhido selecionar cenários especificos para "benign" separado dos cenários de ataques.
+Por que essa combinação, e não 1 cenário só: cenários maliciosos "completos" misturam tráfego benigno com tráfego do
+mesmo dispositivo infectado em momentos de calmaria — não é benigno "de verdade". Optou-se por usar um cenário Honeypot 
+(dispositivo nunca infectado) como fonte de Benign, separado dos cenários maliciosos.
 
 ---
 
 ## 2. Amostragem de cenários grandes
 
-Capture-9-1 e Capture-36-1 têm milhões de linhas (6,3M e 13,6M
-respectivamente) — inviável usar por completo no Colab gratuito. Será
-aplicada amostragem aleatória (não determinística, preservando o rótulo
-original de cada linha).
-
-**Perguntar ao orientador:** validar o tamanho da amostra a ser usada por
-classe (ainda não definido — depende de testes de desempenho vs. tempo de
-treino) e se ele espera uma justificativa estatística mais formal para o
-tamanho amostral escolhido.
+Capture-9-1 e Capture-36-1 têm milhões de linhas inviável usar por completo no Colab gratuito. Será aplicada amostragem aleatória 
+(não determinística, preservando o rótulo original de cada linha).
+Definir ao certo o tamanho da amostragem após realização de testes.
 
 ---
 
-## 3. Descoberta do C&C (Command and Control) — DECISÃO PENDENTE
-
-Ao carregar o Capture-34-1, apareceu uma terceira classe de ataque não
-prevista no escopo da proposta: **C&C (6.706 linhas)**, além de DDoS e
-PortScan.
-
-**Atualização após checar os outros cenários:** o mesmo padrão se repetiu no
-Capture-36-1, com **C&C-HeartBeat (15.688 linhas)** — ou seja, C&C não foi
-coincidência isolada de um cenário, apareceu em 2 dos 3 cenários maliciosos
-escolhidos (34-1 e 36-1). Isso reforça que é um tipo de tráfego relevante e
-recorrente no recorte de dados usado, não um ruído pontual. Importante notar
-que `C&C` e `C&C-HeartBeat` são rótulos com nomes diferentes mas conceito
-relacionado (heartbeat é um subtipo de comunicação C&C) — se optar por
-incluir, será necessário decidir se tratam como uma única classe unificada
-ou como duas classes separadas.
-
-**Duas opções:**
-- **(A) Filtrar e descartar C&C / C&C-HeartBeat** — mantém fidelidade total
-  ao escopo já aprovado (PortScan, DDoS, Okiru). Sem impacto em cronograma
-  ou texto já escrito.
-- **(B) Ampliar escopo e incluir C&C como classe adicional** — tecnicamente
-  defensável, e agora com mais respaldo empírico (aparece em 2 cenários),
-  mas exige: revisar objetivos específicos (Seção 2.3) e metodologia
-  (Seção 4.2), adicionar fundamentação teórica sobre C&C na revisão de
-  literatura, decidir se unifica `C&C` e `C&C-HeartBeat` numa só classe, e
-  **verificar se o baseline principal (Souza and Arima, 2024) também
-  trabalha com C&C** — se não, a comparação direta com o baseline fica
-  comprometida.
-
-**Inclinação atual:** seguir com a Opção A por padrão, para não travar o
-cronograma, guardando a observação como nota para a Seção 4.4 (Limitações)
-ou sugestão de trabalho futuro.
-
-**Perguntar ao orientador:** confirmar se a Opção A é aceitável ou se ele vê
-valor acadêmico em ampliar para C&C mesmo com o custo de tempo, dado que
-agora há evidência de recorrência em mais de um cenário.
-
----
-
-## 3.1. Limpeza simples — Okiru-Attack (sem necessidade de decisão de escopo)
-
-No Capture-36-1 apareceram 3 linhas rotuladas como `Okiru-Attack`, distinto
-de `Okiru` (13.626.744 linhas). Volume insuficiente para constituir uma
-classe treinável — será tratado como limpeza de dados (linhas descartadas),
-não como uma questão de escopo. Não requer validação do orientador, apenas
-registro no texto do relatório (ex. nota de rodapé ou frase em pré-
-processamento) como critério de limpeza aplicado.
-
----
-
-## 4. Duas colunas de rótulo confirmadas no dataset
-
-O IoT-23 fornece:
-- `label` → binário (Benign / Malicious)
-- `detailed-label` → tipo específico do ataque (DDoS, PortScan, Okiru, etc.)
-
-Isso confirma na prática que a Etapa 2 da proposta (tarefas binária e
-multiclasse) é diretamente viável com as colunas nativas do dataset, sem
-necessidade de engenharia adicional para criar os rótulos.
-
-**Sem pendência aqui** — apenas registrar que foi validado empiricamente.
-
----
-
-## 5. Verificação de classes extras nos demais cenários — CONCLUÍDA
-
-Checagem feita nos 4 arquivos:
-
-- **Capture-9-1**: limpo, só `PartOfAHorizontalPortScan` e Benign. Sem
-  surpresas.
-- **Capture-4-1 (Honeypot)**: 100% benigno (452 linhas), confirma que é
-  fonte adequada de tráfego benigno "de verdade". Volume baixo — pode ser
-  necessário complementar com outro cenário Honeypot (ex. 5-1 ou 7-1) para
-  aumentar a quantidade de exemplos benignos.
-- **Capture-36-1**: além de Okiru, apareceram `C&C-HeartBeat` (ver item 3) e
-  `Okiru-Attack` com 3 linhas (ver item 3.1).
-
-Resultado: a questão do C&C não é isolada, mas as demais classes estão
-consistentes com o esperado.
-
-
-
-------------------------------------------------------------------
-Só 452 linhas, todas NaN em detailed-label — ou seja, 100% benigno, nenhum ataque. Isso confirma exatamente o que a gente esperava: o Honeypot é uma fonte "limpa" de tráfego benigno de verdade. Só um detalhe: 452 linhas é bem pouco — pode valer a pena usar mais de um cenário Honeypot (existem outros, como 5-1, 7-1) pra ter mais volume de Benign depois, mas isso é ajuste fino pra depois.
-
-
-------------------------------------------------------------------
-
-A ordem correta é:
-
-Primeiro separar treino/teste (Etapa 2 da sua proposta)
-Calcular a normalização só olhando o treino
-Aplicar essa mesma transformação (usando os números aprendidos do treino) no teste, sem recalcular nada nele
-
-------------------------------------------------------------------
-
-"Selecionar cenários... PortScan, DDoS e Okiru + tráfego benigno"
-Ressalva: a proposta menciona "os 3 cenários de tráfego benigno" (Philips Hue, Amazon Echo, Somfy), 
-mas você usou só 2 (Capture-4-1 e 5-1). Vale decidir se isso é suficiente ou se adiciona o terceiro 
-(Somfy Door Lock) — principalmente porque, como vimos, benign é seu recurso mais escasso.
-
-------------------------------------------------------------------
-
-Tratar valores ausentes, codificar categóricos, normalizar numéricos"
-Dois terços feitos (ausentes ✅, codificação ✅). A normalização não foi feita — e isso não é um esquecimento,
- é uma correção que discutimos: normalizar precisa ser feito depois do split treino/teste, não antes, 
- pra não vazar estatística do teste pro treino. A proposta agrupa essas três coisas na mesma frase, mas 
- metodologicamente a ordem certa separa a normalização pra depois da Etapa 2.
-
-------------------------------------------------------------------
-
-"Analisar exploratoriamente a distribuição de classes"
-Aqui está o ponto mais fraco: fizemos várias conferências de value_counts() ao longo do caminho, 
-mas isso foi verificação de engenharia, não uma análise exploratória de verdade pro relatório — não 
-geramos nenhum gráfico (distribuição de classes, boxplots de duração por classe, etc.). Isso é algo que 
-vale fechar antes de considerar a Etapa 1 encerrada, porque a seção de EDA costuma ser cobrada explicitamente 
-na banca, e as figuras ajudam a justificar decisões que você já tomou no código (tipo mostrar visualmente por 
-que Okiru e PortScan precisavam de corte).
-
-------------------------------------------------------------------
+## 3. Decidir entre SMOTE, class_weight, ou combinação
 
 "Decidir entre SMOTE, class_weight, ou combinação — avaliado empiricamente sobre o treino"
 Corretamente não feito ainda — a própria frase da proposta diz que a decisão é avaliada "sobre o 
 conjunto de treino", que só existe depois do split (Etapa 2). Não é uma pendência da Etapa 1, é o 
 começo da Etapa 3/4.
 
-
-
-Uma observação importante pro seu relatório
-
-Repara numa coisa interessante que só ficou visível depois do gráfico: benign (29.090) é agora a maior classe do dataset, não a menor — porque você decidiu não aplicar teto nela, enquanto cortou okiru e partofahorizontalportscan em 20.000. Isso é o oposto do desbalanceamento "natural" que vimos lá no início (onde malicioso era 99,86% dos dados).
-
-Isso é uma decisão de engenharia válida (discutimos o porquê — preservar o benigno real, que é escasso), mas precisa aparecer no texto do relatório como uma escolha explícita, porque olhando só o gráfico final, alguém poderia estranhar "por que o benigno é a classe majoritária, se o problema real de IoT tem muito mais ataque que tráfego normal?" — a resposta é a decisão de teto assimétrico que tomamos, não que o mundo real seja assim.
-
+---
 
 Em relação ao gráfico 3:
 
 O que apareceu: separação quase perfeita por protocolo
 
-Repare: todas as 5 classes de ataque são 100% TCP, enquanto benign tem uma mistura real (ICMP, TCP, UDP). Isso é um sinal extremamente forte — tão forte que, sozinho, quase já classificaria a maior parte dos dados ("se não for TCP, é benigno com certeza"; "se for TCP, ainda pode ser qualquer coisa").
+Repare: todas as 5 classes de ataque são 100% TCP, enquanto benign tem uma mistura real (ICMP, TCP, UDP). Isso é um sinal 
+extremamente forte — tão forte que, sozinho, quase já classificaria a maior parte dos dados ("se não for TCP, é benigno com certeza"; 
+"se for TCP, ainda pode ser qualquer coisa").
 
-Por que isso merece uma nota de cautela, não só comemoração: um sinal tão perfeito levanta duas hipóteses, e vale você (e seu orientador) refletir sobre qual é mais provável:
+Por que isso merece uma nota de cautela, não só comemoração: um sinal tão perfeito levanta duas hipóteses, e vale você refletir sobre
+qual é mais provável:
 
-É genuinamente assim — os malwares específicos que você escolheu (Mirai, Hajime, Okiru) de fato operam majoritariamente via TCP nesse conjunto de capturas, então é um padrão real do seu recorte de dados
-É um artefato da sua seleção de cenários, não do fenômeno "ataque IoT" em geral — se você tivesse escolhido cenários diferentes (com outros malwares que usam UDP, por exemplo), talvez esse padrão não existisse com essa força
+É genuinamente assim — os malwares específicos que você escolheu (Mirai, Hajime, Okiru) de fato operam majoritariamente via TCP 
+nesse conjunto de capturas, então é um padrão real do seu recorte de dados
+É um artefato da sua seleção de cenários, não do fenômeno "ataque IoT" em geral — se você tivesse escolhido cenários 
+diferentes (com outros malwares que usam UDP, por exemplo), talvez esse padrão não existisse com essa força.
 
-Isso não invalida nada do que você fez — é só um ponto importante para a Seção 4.4 (Limitações) do seu relatório: "observou-se que, no recorte de dados utilizado, o protocolo TCP esteve fortemente associado a tráfego malicioso, o que pode refletir características específicas dos cenários selecionados, não necessariamente generalizável a outros malwares IoT". Isso mostra maturidade científica — reconhecer quando um resultado forte demais pode ser específico do seu recorte, não uma lei universal.
+Isso não invalida nada do que você fez — é só um ponto importante para a Seção 4.4 (Limitações) do seu relatório: 
+"observou-se que, no recorte de dados utilizado, o protocolo TCP esteve fortemente associado a tráfego malicioso, 
+o que pode refletir características específicas dos cenários selecionados, não necessariamente generalizável a outros malwares IoT". 
+Isso mostra maturidade científica — reconhecer quando um resultado forte demais pode ser específico do seu recorte, não uma lei universal.
 
 Consequência prática pro seu experimento
 
-Um sinal isolado tão forte pode fazer seus modelos (principalmente Árvore de Decisão e Random Forest) alcançarem acurácia muito alta rapidamente, quase "trapaceando" ao aprender basicamente essa regra de protocolo, sem precisar generalizar padrões mais sutis. Vale, mais pra frente (na Etapa 5, análise de importância de features), checar se proto_tcp/proto_udp aparecem como as features de maior peso — se sim, isso confirma essa hipótese e vira uma discussão rica no relatório sobre o que o modelo "realmente aprendeu".
+Um sinal isolado tão forte pode fazer seus modelos (principalmente Árvore de Decisão e Random Forest) 
+alcançarem acurácia muito alta rapidamente, quase "trapaceando" ao aprender basicamente essa regra de protocolo, 
+sem precisar generalizar padrões mais sutis. Vale, mais pra frente (na Etapa 5, análise de importância de features),
+checar se proto_tcp/proto_udp aparecem como as features de maior peso — se sim, isso confirma essa hipótese e vira uma discussão 
+rica no relatório sobre o que o modelo "realmente aprendeu".
 
-🔶 Ausentes / codificação / normalização — você marcou certo com o losango: 2 de 3 estão prontos (ausentes ✅, codificação ✅), mas normalização ainda não foi feita — e lembra que isso é intencional, não esquecimento: ela só pode acontecer depois do split treino/teste (Etapa 2), senão vaza estatística do teste pro treino. Não dá pra marcar esse item como concluído nem pendente isolado — ele está corretamente bloqueado até a próxima etapa.
+---
 
 Um padrão interessante que apareceu nos números (conectado com o que já descobrimos)
 
-Repare que várias colunas (duration, orig_bytes, missed_bytes, orig_pkts, resp_pkts) têm os percentis 25%, 50% e 75% praticamente idênticos, mas o max é um valor bem alto (ex: orig_pkts vai de -0,0075 na mediana até 266 no máximo). Isso é exatamente o reflexo do padrão "zero-inflacionado" que já vimos no Gráfico 2a — a maioria das linhas (ataques com duração/bytes zerados) empilha num único valor, e só uma minoria de conexões "reais" se espalha em valores altos, formando uma cauda longa.
+Repare que várias colunas (duration, orig_bytes, missed_bytes, orig_pkts, resp_pkts) têm os percentis 25%, 50% e 75% 
+praticamente idênticos, mas o max é um valor bem alto (ex: orig_pkts vai de -0,0075 na mediana até 266 no máximo). 
+Isso é exatamente o reflexo do padrão "zero-inflacionado" que já vimos no Gráfico 2a — a maioria das linhas 
+(ataques com duração/bytes zerados) empilha num único valor, e só uma minoria de conexões "reais" se espalha em valores altos, 
+formando uma cauda longa.
 
-Isso não invalida a normalização, mas é bom você saber: StandardScaler funciona bem quando os dados são razoavelmente simétricos; com essa concentração extrema, ele ainda centraliza corretamente (média 0, desvio 1), mas a maior parte dos pontos fica espremida perto de um único valor, enquanto poucos outliers "esticam" a escala. Isso não é um erro seu — é a natureza desse dataset —, mas vale mencionar essa observação na Seção de EDA/metodologia como uma característica identificada dos dados.
+Isso não invalida a normalização, mas é bom você saber: StandardScaler funciona bem quando os dados são razoavelmente simétricos; 
+com essa concentração extrema, ele ainda centraliza corretamente (média 0, desvio 1), mas a maior parte dos pontos 
+fica espremida perto de um único valor, enquanto poucos outliers "esticam" a escala. Isso não é um erro seu — é a 
+natureza desse dataset —, mas vale mencionar essa observação na Seção de EDA/metodologia como uma característica identificada dos dados.
 
-
-------------------------------------------------------------------------------------
+---
 
 Vale documentar dois pontos na Seção 4.4 (Limitações) para quando escrever o relatório:
 
-Duas classes (okiru, ddos) têm redundância extrema de features nos dados brutos — possível característica do próprio tráfego automatizado desses malwares.
-A separabilidade quase perfeita entre benigno/malicioso neste recorte de cenários pode não generalizar para tráfego IoT mais heterogêneo ou ataques mais sofisticados — os resultados são específicos a esse conjunto de cenários.
+Duas classes (okiru, ddos) têm redundância extrema de features nos dados brutos — possível característica do próprio tráfego automatizado
+desses malwares.
+A separabilidade quase perfeita entre benigno/malicioso neste recorte de cenários pode não generalizar para tráfego IoT mais 
+heterogêneo ou ataques mais sofisticados — os resultados são específicos a esse conjunto de cenários.
 
+---
 
 Novo ponto — Separabilidade quase perfeita entre classes neste recorte de cenários
 
-Após a correção do vazamento por duplicatas (ver ponto anterior sobre os 40,2% de duplicatas) e a correção na ordem do pipeline de amostragem (deduplicar por classe antes de aplicar o teto de amostragem, preservando a diversidade real de okiru: 2 → 621 linhas únicas), o Random Forest treinado nos dados corrigidos obteve F1 ≈ 1,00 tanto na tarefa binária quanto na multiclasse, com apenas 3 erros em 19.630 amostras de teste (multiclasse).
+Após a correção do vazamento por duplicatas (ver ponto anterior sobre os 40,2% de duplicatas) e a correção na ordem do pipeline de 
+amostragem (deduplicar por classe antes de aplicar o teto de amostragem, preservando a diversidade real de okiru: 2 → 621 linhas únicas),
+o Random Forest treinado nos dados corrigidos obteve F1 ≈ 1,00 tanto na tarefa binária quanto na multiclasse, 
+com apenas 3 erros em 19.630 amostras de teste (multiclasse).
 
 Validação feita antes de aceitar o resultado como legítimo (não vazamento):
 
 Sobreposição treino/teste confirmada em 0 após as correções.
-feature_importances_ do modelo mostrou importância distribuída entre várias features fisicamente plausíveis (history_S, proto_tcp, proto_udp, history_D, duration, entre outras), sem nenhuma coluna isolada dominando — padrão inconsistente com vazamento residual.
-As features no topo fazem sentido de rede: tráfego malicioso automatizado tende a não completar handshake TCP (history_S) e ser majoritariamente TCP, enquanto o benigno tem mix de protocolos — achado que já havia aparecido na EDA (Gráfico 3).
+feature_importances_ do modelo mostrou importância distribuída entre várias features fisicamente plausíveis (history_S, proto_tcp, 
+proto_udp, history_D, duration, entre outras), sem nenhuma coluna isolada dominando — padrão inconsistente com vazamento residual.
+As features no topo fazem sentido de rede: tráfego malicioso automatizado tende a não completar handshake TCP (history_S) e ser 
+majoritariamente TCP, enquanto o benigno tem mix de protocolos — achado que já havia aparecido na EDA (Gráfico 3).
 
-Interpretação e limitação a documentar: a separabilidade quase perfeita é provavelmente real, mas específica a este recorte de 6 cenários do IoT-23 (3 de ataque + 3 honeypots benignos). Não necessariamente generalizável a tráfego IoT mais heterogêneo ou a técnicas de ataque mais sofisticadas/evasivas. Vale registrar como limitação explícita na Seção 4.4 do relatório, e comparar com a magnitude dos resultados do baseline (Souza and Arima, 2024) para contextualizar se a diferença chama atenção.
+Interpretação e limitação a documentar: a separabilidade quase perfeita é provavelmente real, mas específica a este recorte de 6 
+cenários do IoT-23 (3 de ataque + 3 honeypots benignos). Não necessariamente generalizável a tráfego IoT mais heterogêneo ou a 
+técnicas de ataque mais sofisticadas/evasivas. Vale registrar como limitação explícita na Seção 4.4 do relatório, 
+e comparar com a magnitude dos resultados do baseline (Souza and Arima, 2024) para contextualizar se a diferença chama atenção.
 
+ddos está sendo confundido com partofahorizontalportscan, não com benign. Dos 67 exemplos reais de ddos, o modelo acertou 31 e 
+classificou 36 como portscan (mais da metade!). Isso explica o recall de 0,46 (31/67).
 
-ddos está sendo confundido com partofahorizontalportscan, não com benign. Dos 67 exemplos reais de ddos, o modelo acertou 31 e classificou 36 como portscan (mais da metade!). Isso explica o recall de 0,46 (31/67).
-
-Faz bastante sentido do ponto de vista de rede: DDoS e PortScan neste dataset provavelmente compartilham características muito parecidas — conexões curtas/instantâneas, volume baixo de dados por conexão, TCP, sem handshake completo (o padrão history_S que apareceu como feature importante). São comportamentos de "varredura rápida" que, sem um kernel bem ajustado, o SVM tem dificuldade de separar — já a estrutura de árvores do RF parece conseguir capturar alguma nuance mais fina entre os dois (talvez volume exato de pacotes, ou porta de destino específica).
+Faz bastante sentido do ponto de vista de rede: DDoS e PortScan neste dataset provavelmente compartilham características muito
+parecidas — conexões curtas/instantâneas, volume baixo de dados por conexão, TCP, sem handshake completo (o padrão history_S 
+que apareceu como feature importante). São comportamentos de "varredura rápida" que, sem um kernel bem ajustado, o 
+SVM tem dificuldade de separar — já a estrutura de árvores do RF parece conseguir capturar alguma nuance mais fina entre os dois 
+(talvez volume exato de pacotes, ou porta de destino específica).
 
 Também dá pra notar que benign teve 16 casos confundidos com portscan (e 4 com ddos) — pequeno, mas no mesmo eixo de confusão.
 
-Isso é um achado genuinamente interessante para a Seção de Discussão: os dois algoritmos discriminam essas duas classes de forma bem diferente, e isso pode ser um indício real sobre a similaridade estrutural entre DDoS e PortScan neste recorte de tráfego, não só uma fraqueza aleatória do SVM. Vale a pena guardar essa observação (com o número: 36/67 = 54% dos ddos virando portscan) para comparar com o comportamento da Árvore de Decisão e da CNN mais adiante — se o padrão se repetir nos outros modelos, é ainda mais forte; se só o SVM tiver esse problema, aponta pra questão de hiperparâmetro (Etapa 4) mais do que separabilidade real dos dados.
+Isso é um achado genuinamente interessante para a Seção de Discussão: os dois algoritmos discriminam essas duas classes 
+de forma bem diferente, e isso pode ser um indício real sobre a similaridade estrutural entre DDoS e PortScan 
+neste recorte de tráfego, não só uma fraqueza aleatória do SVM. Vale a pena guardar essa observação 
+(com o número: 36/67 = 54% dos ddos virando portscan) para comparar com o comportamento da Árvore de Decisão e da CNN mais adiante — 
+se o padrão se repetir nos outros modelos, é ainda mais forte; se só o SVM tiver esse problema, aponta pra questão de hiperparâmetro
+(Etapa 4) mais do que separabilidade real dos dados.
 
+A confusão ddos ↔ portscan não é uma característica inseparável dos dados — é uma limitação específica do SVM sem hiperparâmetros 
+ajustados. Tanto RF quanto Árvore de Decisão (duas famílias baseadas em splits/árvores) separam essa fronteira sem dificuldade; 
+só o SVM (baseado em margem/kernel RBF padrão) tropeça nela. Isso é um achado de comparação genuinamente interessante pra Seção 
+de Discussão: sugere que a fronteira entre ddos e portscan tem uma geometria que árvores capturam bem com splits simples, mas 
+que o kernel RBF sem ajuste não encontra — bom candidato a melhorar na Etapa 4 (Grid Search de C/gamma).
 
-A confusão ddos ↔ portscan não é uma característica inseparável dos dados — é uma limitação específica do SVM sem hiperparâmetros ajustados. Tanto RF quanto Árvore de Decisão (duas famílias baseadas em splits/árvores) separam essa fronteira sem dificuldade; só o SVM (baseado em margem/kernel RBF padrão) tropeça nela. Isso é um achado de comparação genuinamente interessante pra Seção de Discussão: sugere que a fronteira entre ddos e portscan tem uma geometria que árvores capturam bem com splits simples, mas que o kernel RBF sem ajuste não encontra — bom candidato a melhorar na Etapa 4 (Grid Search de C/gamma).
-
-
-Etapa 1: completa, incluindo duas correções que não estavam previstas (vazamento por duplicatas, e a inversão da ordem de amostragem). Bom material extra pra Seção de Limitações/Metodologia.
+---
 
 Modelos binários e multiclasse (RF/AD) — estáveis, resultado confirmado
 Desvios padrão minúsculos em todos (0,0002 a 0,0034). Isso descarta a hipótese de que o F1 alto era "sorte do split" — os modelos generalizam de forma consistente entre diferentes divisões dos dados. Pode considerar esses 5 resultados validados.
@@ -262,10 +155,18 @@ Isso é ótimo material pra Seção de Discussão: reforça, com números concre
 
 Curiosidade menor: RF multiclasse ficou mais rápido que RF binário (0,0051 vs 0,0095 ms) — provavelmente as árvores do multiclasse ficaram um pouco mais rasas/simples. Não é motivo de preocupação, só uma observação.
 
+---
+
+Split aleatório: F1 ≈ 1,00 em todos os modelos clássicos (resultado "de vitrine", mas insuficiente sozinho)
+Ablação de deduplicação: confirma 43,1% de overlap sem dedup, mas mostra que isso não é a causa do desempenho alto — o sinal é genuinamente forte dentro da distribuição
+Split por cenário: revela que esse sinal forte não generaliza uniformemente para tipos de ataque fora da distribição de treino — F1 caindo para 0,72–0,91 dependendo da similaridade com o que foi visto
+Matriz de confusão: identifica que o modo de falha dominante é falso negativo, culminando em 50,1% de port scan não detectado quando essa família fica inteiramente fora do treino
+
 --------------------------------------------------
 
 Minhas Anotações:
 - Mas se CNN é uma rede neural especializada em processar e analisar dados visuais e de imagens por que usa-la nesse projeto que envolve apenas dados de rede?
+- Existem algoritmos de ML especializado para IOT?
 
 O motivo da escolha desses algoritmos de ML se deu pela sua relevância e popularidade na literatura para problemas de classificação, especialmente na área de cibersegurança.
 

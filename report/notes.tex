@@ -1,0 +1,242 @@
+% ============================================================
+% Experimentos de validação metodológica — TCC II
+% Comparação com o baseline (Souza & Arima, SBSeg 2024) e
+% experimentos de robustez (ablação de deduplicação e LOSO)
+%
+% Este arquivo é um trecho autônomo, pensado para ser inserido
+% nas seções de Metodologia / Resultados / Discussão do artigo
+% final. Ajustar numeração de seções/tabelas/figuras conforme
+% a estrutura definitiva do documento.
+% ============================================================
+
+\section{Comparação metodológica com o trabalho de referência}
+\label{sec:comparacao-metodologica}
+
+Como baseline metodológico, este trabalho utiliza \citep{souza2024avaliacao}, que avalia os algoritmos Random Forest, SVM, Árvore de Decisão e uma rede neural convolucional (CNN) no dataset IoT-23 para a tarefa de detecção binária de malware. O pré-processamento adotado pelos autores consiste em cinco etapas: (i) remoção de colunas não relevantes; (ii) \textit{label encoding} das colunas categóricas, incluindo os endereços IP de origem e destino; (iii) substituição de valores ausentes em \texttt{duration}, \texttt{orig\_bytes} e \texttt{resp\_bytes} pela média da respectiva coluna; (iv) \textit{feature scaling}; e (v) divisão treino/teste na proporção 7:3.
+
+A Tabela~\ref{tab:comparacao-metodologica} resume as divergências identificadas entre o pipeline do baseline e o pipeline adotado neste trabalho.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparação entre o pré-processamento do baseline e o pipeline deste trabalho}
+\label{tab:comparacao-metodologica}
+\begin{tabular}{@{}p{3.2cm}p{4.3cm}p{4.3cm}@{}}
+\toprule
+\textbf{Etapa} & \textbf{Baseline} & \textbf{Este trabalho} \\
+\midrule
+Remoção de colunas & Remove \texttt{ts}, \texttt{uid}, \texttt{tunnel\_parents}, \texttt{local\_orig}, \texttt{local\_resp} & Mesmo efeito, mas colunas irrelevantes já são excluídas na leitura (\texttt{usecols}); \texttt{local\_orig}/\texttt{local\_resp} descartadas por serem 100\% vazias \\
+Codificação categórica & \textit{Label encoding} em \texttt{id.orig\_h}, \texttt{id.resp\_h}, \texttt{proto}, \texttt{service}, \texttt{conn\_state}, \texttt{history} & \textit{One-hot encoding} em \texttt{proto}, \texttt{service}, \texttt{conn\_state}, \texttt{history}; endereços IP \textbf{não são utilizados} como \textit{feature} (apenas as portas) \\
+Valores ausentes & Preenchidos com a \textbf{média} da coluna (\texttt{duration}, \texttt{orig\_bytes}, \texttt{resp\_bytes}) & Preenchidos com \textbf{0} + coluna indicadora binária de ausência; \texttt{service}/\texttt{history} ausentes recebem rótulo \texttt{"desconhecido"} \\
+\textit{Feature scaling} & Aplicado (técnica não especificada) & \texttt{StandardScaler}, ajustado apenas no treino \\
+Divisão treino/teste & 70\%/30\%, sem estratificação mencionada & 70\%/30\%, com estratificação por classe \\
+Deduplicação & \textbf{Não mencionada} & Aplicada em duas camadas (dados brutos, antes da amostragem; e \textit{features} codificadas, antes do split) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As duas divergências mais relevantes do ponto de vista metodológico são a exclusão dos endereços IP e a ausência de deduplicação no baseline, discutidas nas Seções~\ref{sec:discussao-ip} e \ref{sec:ablacao}, respectivamente.
+
+\subsection{Exclusão dos endereços IP como \textit{feature}}
+\label{sec:discussao-ip}
+
+O IoT-23 é composto por cenários de captura associados a infraestruturas de rede específicas, cada uma com um conjunto limitado e fixo de endereços IP de atacantes, vítimas e honeypots. Utilizar \texttt{id.orig\_h}/\texttt{id.resp\_h} como \textit{feature} — mesmo codificada — cria risco de vazamento de identidade de cenário: o modelo pode aprender a associar um IP específico ao rótulo malicioso/benigno em vez de aprender características comportamentais do tráfego, o que infla artificialmente o desempenho em avaliação por divisão aleatória e compromete a generalização para tráfego real, onde tais endereços não se repetem. Por esse motivo, este trabalho utiliza apenas as portas de origem e destino (\texttt{id.orig\_p}, \texttt{id.resp\_p}), descartando os endereços IP.
+
+\section{Resultados obtidos (divisão aleatória)}
+\label{sec:resultados-split-aleatorio}
+
+A Tabela~\ref{tab:resultados-split-aleatorio} apresenta os resultados obtidos pelos três algoritmos clássicos (Random Forest, SVM e Árvore de Decisão) na tarefa binária, utilizando divisão aleatória treino/teste (70\%/30\%, estratificada), em comparação com os valores reportados pelo baseline.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparação de resultados (tarefa binária) com o baseline}
+\label{tab:resultados-split-aleatorio}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+& \multicolumn{2}{c}{Acurácia} & \multicolumn{2}{c}{Precisão} & \multicolumn{2}{c}{F1-Score} \\
+\textbf{Algoritmo} & Baseline & Este trab. & Baseline & Este trab. & Baseline & Este trab. \\
+\midrule
+Random Forest & 99{,}33\% & 100\% & 0{,}97 & 1{,}00 & 0{,}98 & 1{,}00 \\
+SVM & 94{,}00\% & 100\% & 0{,}91 & 1{,}00 & 0{,}92 & 1{,}00 \\
+Árvore de Decisão & 97{,}33\% & 100\% & 0{,}93 & 1{,}00 & 0{,}96 & 1{,}00 \\
+CNN & 92{,}83\% & \textit{pendente} & 0{,}97 & \textit{pendente} & 0{,}98 & \textit{pendente} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Todos os classificadores clássicos deste trabalho atingem desempenho próximo ao teto (F1 $\approx$ 1{,}00) sob divisão aleatória, superando os valores do baseline. Esse resultado, por si só, não deve ser interpretado como evidência direta de superioridade metodológica: um desempenho tão próximo da saturação demanda verificação adicional quanto a vazamento de dados e capacidade real de generalização, motivando os dois experimentos de validação descritos nas seções seguintes.
+
+\section{Experimento de ablação: efeito da deduplicação}
+\label{sec:ablacao}
+
+O artigo de referência não descreve nenhuma etapa de remoção de duplicatas em seu pipeline. Este trabalho identificou, na fase exploratória, que 40,2\% das linhas do conjunto de dados bruto correspondiam a duplicatas exatas — o que motivou a adoção de deduplicação em duas camadas no pipeline: (i) sobre os dados brutos, antes da amostragem por classe; e (ii) sobre o conjunto de \textit{features} já codificado, imediatamente antes da divisão treino/teste.
+
+Para isolar o efeito real dessa decisão metodológica, foi conduzido um experimento de ablação com três configurações, treinando um Random Forest binário (\texttt{class\_weight="balanced"}) em cada uma:
+
+\begin{enumerate}
+    \item \textbf{Pipeline atual (dedup completo):} deduplicação nas duas camadas descritas acima.
+    \item \textbf{Dedup parcial:} apenas a deduplicação da camada de \textit{features} codificadas é desativada, mantendo a deduplicação da amostragem bruta.
+    \item \textbf{Sem deduplicação (réplica do baseline):} nenhuma deduplicação aplicada em qualquer etapa, reconstruindo a amostragem diretamente dos dados brutos por cenário.
+\end{enumerate}
+
+Para cada configuração, mediu-se o percentual de linhas do conjunto de teste que são idênticas a linhas do conjunto de treino (evidência direta de vazamento por duplicação) e o F1-Score macro resultante. Os resultados são apresentados na Tabela~\ref{tab:ablacao-dedup}.
+
+\begin{table}[htbp]
+\centering
+\caption{Experimento de ablação de deduplicação (RF binário)}
+\label{tab:ablacao-dedup}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Configuração} & \textbf{Sobreposição treino/teste} & \textbf{F1-Score (macro)} \\
+\midrule
+Sem deduplicação (réplica do baseline) & 43{,}1\% & 1{,}0000 \\
+Dedup parcial (só camada de \textit{features}) & 1{,}3\% & 0{,}9998 \\
+Pipeline atual (dedup completo) & 0{,}0\% & 0{,}9998 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Discussão}
+
+Dois achados emergem desse experimento. Primeiro, o percentual de sobreposição de 43,1\% obtido ao desativar toda deduplicação confirma, com evidência quantitativa direta, a existência de vazamento substancial de dados entre treino e teste quando a etapa de deduplicação é omitida — cenário que corresponde ao pipeline descrito pelo baseline. Isso reforça que a decisão de deduplicar é metodologicamente necessária, independentemente de seu efeito sobre a métrica final.
+
+Segundo, e de forma menos intuitiva: apesar da sobreposição massiva de 43,1\%, o F1-Score praticamente não se altera entre a configuração sem deduplicação (1{,}0000) e o pipeline completo (0{,}9998) — uma diferença compatível com ruído estatístico. Esse resultado indica que a deduplicação, embora necessária por rigor metodológico, \textbf{não é a causa} do desempenho quase perfeito observado sob divisão aleatória. A conclusão mais plausível é que o sinal discriminativo presente nas \textit{features} escolhidas para os seis cenários selecionados é genuinamente forte, achado que é consistente com a análise de \texttt{feature\_importances\_} realizada anteriormente, que não identificou nenhuma \textit{feature} isolada dominando a decisão do modelo de forma suspeita.
+
+Esse resultado também explica por que a camada de deduplicação aplicada diretamente sobre as \textit{features} codificadas (camada 2) mostrou efeito quase nulo isoladamente (sobreposição de apenas 1,3\% quando a camada 1 permanece ativa): a deduplicação sobre os dados brutos, realizada antes da amostragem por classe, já elimina a maior parte das duplicatas exatas, tornando a segunda camada majoritariamente redundante — embora sua manutenção continue sendo uma boa prática defensiva.
+
+\section{Experimento de generalização entre cenários (\textit{Leave-One-Scenario-Out})}
+\label{sec:loso}
+
+A divisão aleatória treino/teste, mesmo deduplicada, não avalia a capacidade do modelo de generalizar para tráfego de um cenário de captura completamente não observado durante o treinamento. Para isso, foi conduzida uma validação por \textit{Leave-One-Scenario-Out} (LOSO): cada um dos três cenários dominados por tráfego malicioso (\texttt{capture\_34\_1}, \texttt{capture\_36\_1}, \texttt{capture\_9\_1}) foi, por vez, inteiramente removido do treinamento e utilizado exclusivamente como teste, enquanto o tráfego benigno (proveniente dos três cenários de honeypot) foi dividido proporcionalmente entre treino e teste, garantindo que ambos os conjuntos contivessem exemplos de ambas as classes.
+
+A Tabela~\ref{tab:composicao-cenarios} apresenta a composição percentual de classes de cada cenário utilizado, evidenciando que os cenários maliciosos selecionados são fortemente dominados por uma única família de ataque.
+
+\begin{table}[htbp]
+\centering
+\caption{Composição percentual de classes por cenário (dados deduplicados)}
+\label{tab:composicao-cenarios}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Cenário} & benign & c\&c & c\&c-heartbeat & ddos & okiru & portscan \\
+\midrule
+capture\_34\_1 & 10{,}1\% & 86{,}9\% & 0{,}0\% & 2{,}9\% & 0{,}0\% & 0{,}2\% \\
+capture\_36\_1 & 6{,}0\% & 0{,}0\% & 90{,}4\% & 0{,}0\% & 3{,}6\% & 0{,}0\% \\
+capture\_9\_1 & 48{,}2\% & 0{,}0\% & 0{,}0\% & 0{,}0\% & 0{,}0\% & 51{,}8\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Resultados — tarefa binária}
+
+A Tabela~\ref{tab:loso-binario} apresenta o desempenho do Random Forest binário para cada cenário retido, junto do percentual de falsos negativos (tráfego malicioso classificado como benigno) observado na matriz de confusão correspondente.
+
+\begin{table}[htbp]
+\centering
+\caption{Validação LOSO — tarefa binária}
+\label{tab:loso-binario}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Cenário retido} & \textbf{Família dominante} & \textbf{Acurácia} & \textbf{F1 (macro)} & \textbf{Falsos negativos} \\
+\midrule
+capture\_34\_1 & c\&c & 0{,}7812 & 0{,}7154 & 25{,}0\% \\
+capture\_36\_1 & c\&c-heartbeat & 0{,}9670 & 0{,}9117 & 3{,}6\% \\
+capture\_9\_1 & portscan & 0{,}7438 & 0{,}7289 & 50{,}1\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Discussão}
+
+Sob divisão aleatória (Seção~\ref{sec:resultados-split-aleatorio}), o F1-Score do Random Forest binário atinge 1{,}00. Sob validação LOSO, esse valor cai para o intervalo de 0{,}72 a 0{,}91, dependendo do cenário retido — uma queda substancial que evidencia que parte do desempenho observado sob divisão aleatória reflete características específicas do ambiente de captura, e não exclusivamente padrões comportamentais de tráfego malicioso generalizáveis.
+
+A queda não é uniforme, e o padrão observado é explicado pela composição de classes de cada cenário (Tabela~\ref{tab:composicao-cenarios}) e por sua relação com as classes remanescentes no treino:
+
+\begin{itemize}
+    \item \textbf{capture\_36\_1} (F1 = 0{,}9117): ao ser retido, o treino ainda contém \texttt{capture\_34\_1}, dominado por \texttt{c\&c} — variante estruturalmente próxima de \texttt{c\&c-heartbeat} (ambas envolvem comunicação com um servidor de comando e controle). A proximidade comportamental entre as duas variantes explica a generalização relativamente satisfatória.
+    \item \textbf{capture\_34\_1} (F1 = 0{,}7154): ao ser retido, nenhum exemplo de \texttt{c\&c} puro resta no treino (apenas a variante \textit{heartbeat} e \textit{portscan}), obrigando o modelo a generalizar entre variantes de C\&C com padrões de tráfego distintos (duração, volume de \textit{bytes}, frequência de comunicação).
+    \item \textbf{capture\_9\_1} (F1 = 0{,}7289): ao ser retido, nenhum exemplo de \textit{portscan} resta no treino. Por ser uma família de ataque estruturalmente distinta das variantes de C\&C (conexões curtas e de baixo volume, em vez de comunicação sustentada com um host específico), é o cenário com pior generalização.
+\end{itemize}
+
+O modo de falha dominante em todos os três cenários é o falso negativo — tráfego malicioso classificado como benigno —, enquanto o falso positivo permanece marginal (no máximo 5,2\%) em todos os casos. Esse é o tipo de erro mais crítico para um sistema de detecção de intrusão, pois representa um ataque que passaria despercebido em produção. O caso mais severo ocorre no cenário \texttt{capture\_9\_1}: quando nenhum exemplo de \textit{portscan} está presente no treino, 50,1\% do tráfego malicioso desse tipo é classificado como benigno.
+
+Esse achado evidencia que, embora o sinal discriminativo do conjunto de dados seja forte dentro da distribuição observada (Seção~\ref{sec:ablacao}), a capacidade de generalização do modelo para famílias de ataque não representadas no treinamento é heterogênea e, no pior caso observado, limitada. Constitui, na avaliação dos autores, a contribuição mais relevante deste trabalho em relação ao baseline, que não realiza nenhuma forma de validação por cenário, apontando essa análise apenas como direção de trabalho futuro.
+
+\subsection{Resultados — tarefa multiclasse e limitação identificada}
+\label{sec:loso-multiclasse}
+
+A mesma validação foi replicada para a tarefa multiclasse, com resultados substancialmente mais baixos (F1 macro entre 0{,}10 e 0{,}17). A investigação da causa revelou uma limitação estrutural do experimento, e não uma falha de generalização do modelo: dado que os seis cenários selecionados apresentam correspondência quase 1:1 entre cenário e classe majoritária (Tabela~\ref{tab:composicao-cenarios}), reter um cenário inteiro remove, na prática, \textbf{todos ou quase todos} os exemplos daquela classe do conjunto de treino. Um classificador supervisionado convencional é estruturalmente incapaz de prever uma classe ausente do conjunto de treino — o que se reflete em precisão e revocação nulas para as classes majoritárias dos cenários retidos, independentemente da qualidade do modelo.
+
+Esse resultado não é descartado, mas reinterpretado como um achado diagnóstico: a validação LOSO multiclasse, tal como o dataset está atualmente configurado (seis cenários, com relação quase 1:1 entre cenário e classe), não é capaz de medir generalização multiclasse de forma válida. Para que essa validação seja metodologicamente sólida, seria necessário ampliar a cobertura de cenários por família de ataque, garantindo múltiplas instâncias de captura para cada classe — o que reforça a recomendação, já identificada como trabalho futuro, de expandir o conjunto de cenários utilizados para incluir múltiplas capturas por família de ameaça presente no IoT-23 (incluindo famílias ainda não cobertas, como Mirai, Torii e FileDownload).
+
+\section{Teste de significância estatística entre classificadores}
+\label{sec:mcnemar}
+
+Embora os três algoritmos clássicos apresentem métricas agregadas quase idênticas sob divisão aleatória (Seção~\ref{sec:resultados-split-aleatorio}), essa proximidade não implica, por si só, equivalência estatística entre os classificadores. Para verificar isso, aplicou-se o teste de McNemar \citep{mcnemar1947note} a cada par de classificadores, utilizando as predições geradas sobre o mesmo conjunto de teste (tarefa binária, divisão aleatória). O teste avalia se a discordância entre as predições de dois classificadores — casos em que um acerta e o outro erra — é estatisticamente significativa, empregando a variante exata (binomial), apropriada dado o número reduzido de casos discordantes observado. A Tabela~\ref{tab:mcnemar} apresenta os resultados.
+
+\begin{table}[htbp]
+\centering
+\caption{Teste de McNemar entre pares de classificadores (tarefa binária)}
+\label{tab:mcnemar}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Comparação} & \textbf{Só A acerta} & \textbf{Só B acerta} & \textbf{p-valor} \\
+\midrule
+Random Forest vs.\ SVM & 22 & 1 & 0{,}000006$^{*}$ \\
+Random Forest vs.\ Árvore de Decisão & 1 & 2 & 1{,}000000 \\
+SVM vs.\ Árvore de Decisão & 1 & 23 & 0{,}000003$^{*}$ \\
+\bottomrule
+\multicolumn{4}{l}{\footnotesize $^{*}$Diferença estatisticamente significativa ($\alpha = 0{,}05$).}
+\end{tabular}
+\end{table}
+
+Apesar de as métricas agregadas de F1-Score dos três algoritmos serem praticamente idênticas (Tabela~\ref{tab:resultados-split-aleatorio}), o teste de McNemar identifica diferença estatisticamente significativa entre o SVM e os demais classificadores: tanto o Random Forest quanto a Árvore de Decisão acertam um número de casos discordantes desproporcionalmente maior em relação ao SVM (22 e 23 casos, respectivamente, contra apenas 1 no sentido oposto em cada comparação). Já a diferença entre Random Forest e Árvore de Decisão não é estatisticamente significativa, indicando desempenho equivalente entre esses dois classificadores nesse conjunto de teste.
+
+Esse resultado corrobora, com rigor estatístico, a fragilidade relativa do SVM já observada qualitativamente na tarefa multiclasse (desempenho inferior nas classes \texttt{ddos} e \texttt{portscan}) e no tempo de inferência (ordens de magnitude mais lento que a Árvore de Decisão devido à estratégia \textit{one-vs-one}), reforçando que a escolha do SVM como classificador de produção seria a menos favorável entre os três algoritmos clássicos avaliados, apesar de métricas agregadas superficialmente semelhantes.
+
+\section{Avaliação sob distribuição natural de classes}
+\label{sec:distribuicao-natural}
+
+Os experimentos anteriores utilizam um conjunto de teste com classes balanceadas artificialmente (\texttt{CAP\_POR\_CLASSE}), o que não reflete a proporção real de tráfego observada no IoT-23. Para avaliar o comportamento dos modelos sob uma distribuição mais próxima da realidade de produção, foi construído um conjunto de teste adicional, amostrado do checkpoint de dados brutos na proporção natural observada entre as classes, com remoção de qualquer linha já presente no conjunto de treino (verificada via hash das \textit{features}, evitando vazamento). O conjunto de treino permaneceu inalterado, para isolar o efeito da mudança de distribuição no teste.
+
+O processo de amostragem revelou uma limitação relevante: das classes minoritárias em volume bruto mas raras em diversidade, \texttt{okiru} e \texttt{ddos} tiveram, respectivamente, apenas 1 e 0 linhas remanescentes após a remoção de sobreposição com o treino — resultado consistente com o grau de redundância extrema dessas classes já identificado na Seção~\ref{sec:ablacao} e documentado anteriormente como justificativa para a não utilização de SMOTE nessas classes. Em consequência, o conjunto de teste final (9.589 linhas) ficou dominado pela classe \texttt{portofahorizontalportscan} (99,2\%), com representação residual das demais classes (\texttt{benign}: 44; \texttt{c\&c-heartbeat}: 23; \texttt{c\&c}: 10; \texttt{okiru}: 1; \texttt{ddos}: 0).
+
+Os três classificadores (Random Forest, SVM e Árvore de Decisão) mantiveram desempenho perfeito (F1-Score macro = 1{,}00, acurácia = 100\%) sobre esse conjunto. Esse resultado deve ser interpretado com cautela: a classe dominante do teste (\texttt{portscan}) corresponde a uma categoria já amplamente representada e balanceada no treinamento, de modo que o experimento, embora confirme robustez sob a distribuição observada, não constitui uma avaliação completa da hipótese de distribuição natural — as classes que ofereceriam o teste mais desafiador (\texttt{okiru}, \texttt{ddos}) não puderam ser avaliadas devido à sua redundância extrema, e as demais classes minoritárias apresentam tamanho amostral pequeno demais para sustentar conclusões estatisticamente robustas de forma isolada.
+
+\section{Síntese e limitações}
+\label{sec:sintese-limitacoes}
+
+Os experimentos de validação conduzidos permitem as seguintes conclusões, que serão incorporadas à discussão final do trabalho:
+
+\begin{enumerate}
+    \item O desempenho quase perfeito (F1 $\approx$ 1{,}00) obtido sob divisão aleatória, superior ao baseline em todos os algoritmos clássicos avaliados, não decorre de vazamento por duplicação de dados — efeito confirmado experimentalmente e quantificado (Seção~\ref{sec:ablacao}) — mas reflete um sinal discriminativo genuinamente forte no recorte de dados utilizado.
+    \item Esse mesmo desempenho, contudo, não se sustenta integralmente sob avaliação por cenário retido (LOSO): o F1 binário cai para o intervalo de 0{,}72–0{,}91, com o erro concentrado quase exclusivamente em falsos negativos, indicando generalização parcial e dependente da proximidade estrutural entre famílias de ataque.
+    \item A validação LOSO multiclasse, nas condições atuais do dataset selecionado, é inconclusiva por limitação estrutural (correspondência quase 1:1 entre cenário e classe), não por deficiência do modelo — achado que orienta diretamente a próxima etapa do trabalho (ampliação da cobertura de cenários).
+    \item O baseline de referência não relata nenhuma forma de deduplicação nem de validação por cenário, de modo que os experimentos aqui descritos representam uma extensão metodológica relevante em relação ao trabalho original, especialmente relevante frente à limitação que os próprios autores do baseline apontam como trabalho futuro (avaliação contra artefatos maliciosos fora do IoT-23).
+    \item O teste de McNemar (Seção~\ref{sec:mcnemar}) identifica diferença estatisticamente significativa entre o SVM e os demais classificadores, apesar de métricas agregadas semelhantes, reforçando que a fragilidade relativa do SVM observada qualitativamente ao longo do trabalho tem respaldo estatístico formal.
+    \item A avaliação sob distribuição natural de classes (Seção~\ref{sec:distribuicao-natural}) confirma robustez dos modelos sobre a fração do espaço de classes que pôde ser efetivamente testada, mas evidencia, mais uma vez, a limitação de diversidade das classes \texttt{okiru} e \texttt{ddos} — reforçando a necessidade de expansão da cobertura de cenários (item a seguir) para uma avaliação mais completa.
+\end{enumerate}
+
+Como limitações do presente conjunto de experimentos, destacam-se: (i) a validação LOSO foi realizada exclusivamente com o algoritmo Random Forest, por razões de custo computacional, permanecendo como trabalho a ser conduzido a extensão aos demais algoritmos (SVM, Árvore de Decisão e, quando implementada, a CNN); e (ii) a cobertura atual de seis cenários do IoT-23 — com forte correspondência entre cenário e classe majoritária — limita tanto a validação LOSO multiclasse (Seção~\ref{sec:loso-multiclasse}) quanto a avaliação sob distribuição natural (Seção~\ref{sec:distribuicao-natural}), apontando para a expansão do conjunto de cenários utilizados, incluindo famílias de ameaça ainda não cobertas (Mirai, Torii, FileDownload), como próxima etapa prioritária do trabalho.
+
+% ============================================================
+% Sugestão de entradas de referência (ajustar conforme o
+% arquivo .bib do projeto):
+%
+% @inproceedings{souza2024avaliacao,
+%   author    = {Souza, Cristian H. M. and Arima, Carlos H.},
+%   title     = {Avaliação de algoritmos de machine learning para
+%                detecção de malware IoT no dataset IoT-23},
+%   booktitle = {Anais do SBSeg 2024: Artigos Curtos},
+%   year      = {2024}
+% }
+%
+% @article{mcnemar1947note,
+%   author  = {McNemar, Quinn},
+%   title   = {Note on the sampling error of the difference between
+%              correlated proportions or percentages},
+%   journal = {Psychometrika},
+%   volume  = {12},
+%   number  = {2},
+%   pages   = {153--157},
+%   year    = {1947}
+% }
+% ============================================================
