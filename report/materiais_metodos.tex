@@ -1,0 +1,294 @@
+% =====================================================================
+% CAPÍTULO 3 — MATERIAIS E MÉTODOS
+% ---------------------------------------------------------------------
+% Pacotes usados neste capítulo (adicione ao preâmbulo se ainda não tiver):
+%   \usepackage{booktabs}    % \toprule, \midrule, \bottomrule
+%   \usepackage{multirow}    % \multirow nas tabelas
+%   \usepackage{amsmath}     % equações
+%   \usepackage{array}       % alinhamento à esquerda nas colunas p{} das tabelas
+% Citações: troque \cite{} por \citep{}/\citet{} se o seu modelo usar natbib,
+% e ajuste as chaves para as do seu .bib (as novas estão em referencias_novas.bib).
+% Linhas marcadas com "% TODO" pedem conferência sua.
+% =====================================================================
+
+\chapter{Materiais e Métodos}
+\label{cap:metodos}
+
+Este capítulo descreve os materiais e os procedimentos adotados no desenvolvimento do trabalho. São apresentados as ferramentas utilizadas, os cenários selecionados do conjunto de dados IoT-23, o pré-processamento e a deduplicação dos dados, a divisão e o balanceamento das classes, os modelos implementados e o ajuste de seus hiperparâmetros, o protocolo de avaliação e, por fim, os experimentos complementares conduzidos para verificar a validade dos resultados.
+
+Em relação ao que foi planejado na proposta, três alterações metodológicas merecem destaque e são justificadas ao longo do capítulo: (i) a inclusão de uma etapa de deduplicação dos dados, motivada pelo elevado grau de repetição encontrado no IoT-23 (Seção~\ref{sec:dedup}); (ii) a substituição do teste de Wilcoxon pelo teste de McNemar como teste estatístico principal (Seção~\ref{sec:estatistica}); e (iii) a inclusão de experimentos de generalização entre cenários e de representação de atributos, que não estavam previstos inicialmente (Seção~\ref{sec:validade}).
+
+% ---------------------------------------------------------------------
+\section{Ferramentas}
+\label{sec:ferramentas}
+
+Os experimentos foram implementados na linguagem Python, versão 3, em um único \textit{notebook} Jupyter executado no Google Colaboratory (Google Colab), com acesso a uma GPU NVIDIA T4. Os dados brutos, os conjuntos intermediários e os modelos treinados foram armazenados no Google Drive, o que permitiu retomar a execução a partir de pontos de verificação (\textit{checkpoints}) sem repetir as etapas de maior custo computacional. O código-fonte foi versionado em repositório Git.
+
+A manipulação dos dados foi feita com as bibliotecas Pandas e PyArrow, esta última utilizada para ler em lotes os arquivos de maior volume no formato Parquet. Os modelos Random Forest, Árvore de Decisão e SVM, bem como as rotinas de divisão dos dados, normalização, busca de hiperparâmetros, validação cruzada e cálculo de métricas, foram implementados com a biblioteca Scikit-learn~\cite{pedregosa2011scikit}. A técnica SMOTE foi aplicada por meio da biblioteca imbalanced-learn~\cite{lemaitre2017imbalanced}. A CNN foi implementada com Keras, tendo o TensorFlow~\cite{abadi2016tensorflow} (versão 2.20) como \textit{backend}. O teste de McNemar foi calculado com a biblioteca statsmodels~\cite{seabold2010statsmodels}, e as visualizações foram produzidas com Matplotlib e Seaborn.
+% TODO: se quiser citar as versões exatas, rode no Colab:
+%   import sys, sklearn, pandas, imblearn; print(sys.version, sklearn.__version__, pandas.__version__, imblearn.__version__)
+
+% ---------------------------------------------------------------------
+\section{Conjunto de dados e seleção dos cenários}
+\label{sec:cenarios}
+
+Foram utilizados os arquivos \texttt{conn.log.labeled} do IoT-23~\cite{garcia2020iot23}, gerados pela ferramenta de monitoramento de rede Zeek. Cada linha desses arquivos corresponde a um fluxo (conexão) de rede, descrito por atributos como portas de origem e destino, protocolo, serviço, duração, bytes e pacotes trocados e estado da conexão, acompanhado de dois rótulos: o rótulo binário (\texttt{label}, benigno ou malicioso) e o rótulo detalhado (\texttt{detailed-label}), que identifica o tipo de atividade maliciosa.
+
+Foram selecionadas nove capturas, apresentadas na Tabela~\ref{tab:cenarios}: seis cenários maliciosos, escolhidos de modo a contemplar os tipos de ataque mais frequentes no conjunto de dados (varredura de portas, Okiru e DDoS), além das classes de comando e controle e de ataque direto, e as três capturas exclusivamente benignas, obtidas a partir de dispositivos reais em ambiente de \textit{honeypot}. Ressalta-se que as capturas maliciosas também contêm tráfego benigno, gerado pelos próprios dispositivos infectados. Na captura 36-1, foram descartadas as linhas com o rótulo residual \texttt{Okiru-Attack}, por sua quantidade irrisória.
+
+\begin{table}[htbp]
+\centering
+\caption{Capturas do IoT-23 utilizadas neste trabalho.}
+\label{tab:cenarios}
+\begin{tabular}{lll>{\raggedright\arraybackslash}p{0.30\textwidth}}
+\toprule
+\textbf{Captura}\textsuperscript{*} & \textbf{Tipo} & \textbf{Malware} & \textbf{Classes maliciosas presentes} \\
+\midrule
+Malware 1-1   & Malicioso & Hide and Seek & PartOfAHorizontalPortScan \\
+Malware 3-1   & Malicioso & Muhstik       & Attack, PartOfAHorizontalPortScan \\
+Malware 8-1   & Malicioso & Hakai         & C\&C \\
+Malware 9-1   & Malicioso & Hajime        & PartOfAHorizontalPortScan \\
+Malware 34-1  & Malicioso & Mirai         & DDoS, C\&C, PartOfAHorizontalPortScan \\
+Malware 36-1  & Malicioso & Okiru         & Okiru, C\&C-HeartBeat \\
+Honeypot 4-1      & Benigno   & --            & -- \\
+Honeypot 5-1      & Benigno   & --            & -- \\
+Honeypot 7-1      & Benigno   & --            & -- \\
+\bottomrule
+\end{tabular}
+\\[2pt]
+\small{\textsuperscript{*}Nomes originais: CTU-IoT-Malware-Capture-\textit{N} e CTU-Honeypot-Capture-\textit{N}.}\\
+\small{Fonte: elaborado pelo autor, a partir de \citeonline{garcia2020iot23}.}
+\end{table}
+% TODO: confira os nomes dos malwares na página do IoT-23 (stratosphereips.org/datasets-iot23).
+% TODO: \citeonline é do abnTeX2; se não usar abnTeX2, troque por \cite.
+
+No total, as nove capturas somam 21.223.743 fluxos. A distribuição entre as classes é extremamente desigual: apenas as classes Okiru e PartOfAHorizontalPortScan concentram mais de 97\% dos fluxos, enquanto a classe Attack possui menos de seis mil (Tabela~\ref{tab:dedup}). Ao longo do texto, a classe PartOfAHorizontalPortScan é referida simplesmente como \textit{portscan}.
+
+% ---------------------------------------------------------------------
+\section{Pré-processamento}
+\label{sec:preprocessamento}
+
+\subsection{Seleção inicial de atributos}
+
+Conforme previsto na proposta, foram descartados, já na leitura dos arquivos, os atributos que identificam a conexão ou o momento em que ela ocorreu --- o carimbo de tempo (\texttt{ts}), o identificador único do fluxo (\texttt{uid}) e os endereços IP de origem e destino --- além do campo \texttt{tunnel\_parents}. Esses atributos não descrevem o comportamento do tráfego e poderiam levar o modelo a memorizar dispositivos ou instantes específicos de cada captura, caracterizando vazamento de informação (\textit{data leakage}). Os rótulos textuais foram padronizados em letras minúsculas.
+
+\subsection{Tratamento de valores ausentes}
+
+No formato do Zeek, valores ausentes são representados pelo caractere ``\texttt{-}''. O tratamento adotado dependeu do atributo:
+\begin{itemize}
+    \item \texttt{local\_orig} e \texttt{local\_resp} estavam vazios em 100\% dos fluxos e foram removidos;
+    \item \texttt{duration}, \texttt{orig\_bytes} e \texttt{resp\_bytes} ficam ausentes quando a conexão não chega a ser estabelecida. Como essa ausência é, ela própria, informativa, foi criado para cada um deles um atributo indicador binário (\texttt{*\_ausente}) antes de preencher o valor ausente com zero;
+    \item \texttt{service} e \texttt{history}, categóricos, receberam a categoria explícita ``desconhecido''.
+\end{itemize}
+
+\subsection{Redução de redundância e codificação}
+
+A análise exploratória mostrou correlação praticamente perfeita entre \texttt{orig\_bytes} e \texttt{orig\_ip\_bytes} e entre \texttt{resp\_bytes} e \texttt{resp\_ip\_bytes}, uma vez que os atributos com sufixo \texttt{\_ip\_bytes} apenas acrescentam o tamanho dos cabeçalhos IP. Por essa redundância, \texttt{orig\_ip\_bytes} e \texttt{resp\_ip\_bytes} foram removidos.
+
+O atributo \texttt{history}, que registra a sequência de eventos da conexão TCP, apresenta um grande número de valores distintos. Para evitar uma codificação excessivamente esparsa, as categorias com menos de 500 ocorrências foram agrupadas em uma categoria ``outros'', restando oito categorias. Em seguida, os atributos categóricos \texttt{proto}, \texttt{service}, \texttt{conn\_state} e \texttt{history} foram convertidos por codificação \textit{one-hot}.
+
+Ao final do pré-processamento, cada fluxo passou a ser representado por 42 atributos: oito numéricos (portas de origem e destino, duração, bytes e pacotes de cada sentido e \texttt{missed\_bytes}), três indicadores de ausência e 31 atributos binários resultantes da codificação \textit{one-hot}. As portas foram mantidas como atributos numéricos, como é usual na literatura; o efeito dessa escolha é investigado na Seção~\ref{sec:exp-portas}.
+
+% ---------------------------------------------------------------------
+\section{Deduplicação e amostragem}
+\label{sec:dedup}
+
+Durante a análise exploratória, constatou-se que o IoT-23 apresenta um grau extremo de repetição: muitos fluxos são idênticos em todos os atributos utilizados pelos modelos. A Tabela~\ref{tab:dedup} mostra que os 13,6 milhões de fluxos da classe Okiru correspondem a apenas 621 combinações distintas de atributos, e os 14.394 fluxos de DDoS, a apenas 224.
+
+Essa repetição tem uma consequência metodológica importante. Se o conjunto for dividido em treino e teste sem tratamento, cópias idênticas de um mesmo fluxo acabam nos dois subconjuntos, e o modelo é avaliado em amostras que já viu durante o treinamento --- o que infla artificialmente as métricas. Por esse motivo, foi incluída no pipeline uma etapa de deduplicação, não prevista na proposta, aplicada em dois momentos.
+
+\textbf{Primeira deduplicação, por classe, antes da amostragem.} Para cada classe, foram removidos os fluxos repetidos, mantendo-se a primeira ocorrência. Somente depois disso foi aplicado um teto de 20.000 fluxos por classe, por amostragem aleatória, para limitar o custo computacional dos experimentos; a classe benigna foi mantida integralmente. A ordem dessas duas operações é relevante: em testes preliminares, ao amostrar primeiro e deduplicar depois, a classe Okiru era reduzida a apenas duas linhas distintas, pois uma amostra aleatória de 20.000 fluxos dessa classe contém quase exclusivamente repetições dos mesmos padrões. Deduplicando antes, todas as classes com menos padrões distintos que o teto foram preservadas por completo. O resultado foi um conjunto de 176.859 fluxos (Tabela~\ref{tab:dedup}).
+
+\begin{table}[htbp]
+\centering
+\caption{Efeito da deduplicação por classe e da amostragem.}
+\label{tab:dedup}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Classe} & \textbf{Fluxos brutos} & \textbf{Fluxos únicos} & \textbf{Fluxos utilizados} \\
+\midrule
+Okiru            & 13.626.744 &     621 &     621 \\
+Portscan         &  7.040.929 & 506.382 &  20.000 \\
+Benigno          &    505.082 & 123.538 & 123.538 \\
+C\&C-HeartBeat   &     15.688 &  15.687 &  15.687 \\
+C\&C             &     14.944 &  10.827 &  10.827 \\
+DDoS             &     14.394 &     224 &     224 \\
+Attack           &      5.962 &   5.962 &   5.962 \\
+\midrule
+\textbf{Total}   & \textbf{21.223.743} & \textbf{663.241} & \textbf{176.859} \\
+\bottomrule
+\end{tabular}
+\\[2pt]
+\small{Fonte: elaborado pelo autor.}
+\end{table}
+
+\textbf{Segunda deduplicação, sobre o vetor final de atributos.} O pré-processamento descrito na Seção~\ref{sec:preprocessamento} --- preenchimento de ausentes com zero, agrupamento de categorias de \texttt{history} e remoção de atributos --- faz com que fluxos originalmente distintos passem a ter vetores de atributos idênticos. Por isso, a deduplicação foi repetida sobre os 42 atributos finais, removendo mais 287 fluxos e resultando em 176.572 amostras. Após a divisão em treino e teste (Seção~\ref{sec:divisao}), verificou-se, por comparação de \textit{hashes} dos vetores, que nenhuma amostra do conjunto de teste é idêntica a uma amostra do treino.
+
+O efeito da deduplicação sobre os resultados foi medido em um experimento de ablação, descrito na Seção~\ref{sec:validade}.
+
+% ---------------------------------------------------------------------
+\section{Divisão dos dados, normalização e balanceamento}
+\label{sec:divisao}
+
+\subsection{Tarefas de classificação e divisão em treino e teste}
+
+Conforme a proposta, os experimentos foram conduzidos em duas tarefas: uma tarefa \textbf{binária}, que distingue tráfego benigno de malicioso, e uma tarefa \textbf{multiclasse}, com sete classes (benigno e os seis tipos de atividade maliciosa da Tabela~\ref{tab:dedup}).
+
+O conjunto deduplicado foi dividido em 70\% para treino (123.600 amostras) e 30\% para teste (52.972 amostras), por amostragem estratificada pelo rótulo multiclasse, o que preserva a proporção de todas as classes nos dois subconjuntos. A tarefa binária utiliza exatamente a mesma divisão. O conjunto de teste não foi utilizado em nenhuma etapa de treinamento, ajuste de hiperparâmetros ou seleção de modelos.
+
+\subsection{Normalização}
+
+Os oito atributos numéricos foram padronizados com o \texttt{StandardScaler} (média zero e desvio padrão unitário). Os parâmetros da padronização foram calculados exclusivamente sobre o conjunto de treino e, em seguida, aplicados ao conjunto de teste, evitando que informações do teste influenciassem o treinamento. Os atributos binários da codificação \textit{one-hot} não foram alterados.
+
+\subsection{Balanceamento das classes}
+
+O conjunto de treino é fortemente desbalanceado: na tarefa multiclasse, a classe benigna possui 86.300 amostras, enquanto Okiru e DDoS possuem apenas 435 e 156, respectivamente. Das duas estratégias previstas na proposta, foram adotadas:
+\begin{itemize}
+    \item \textbf{Ponderação de classes} (\texttt{class\_weight='balanced'}), em todos os modelos e nas duas tarefas. Nessa estratégia, o peso de cada classe na função de custo é inversamente proporcional à sua frequência no treino;
+    \item \textbf{SMOTE}~\cite{chawla2002smote}, com $k=5$ vizinhos, aplicado somente sobre o treino da tarefa binária, que passou a ter 86.300 amostras de cada classe.
+\end{itemize}
+
+Na tarefa multiclasse, optou-se por não aplicar o SMOTE. Como as classes DDoS e Okiru possuem apenas 224 e 621 padrões distintos, a interpolação entre vizinhos geraria amostras sintéticas muito próximas desses poucos padrões, sem acrescentar informação real e com risco de criar exemplos irrealistas. Na tarefa binária, os resultados obtidos com SMOTE e com ponderação de classes foram comparados (Capítulo~\ref{cap:resultados}). Como o desempenho foi equivalente, a ponderação de classes foi adotada nos modelos finais das duas tarefas, por manter um único critério de balanceamento e menor custo de treinamento.
+% TODO: confira o \label do seu capítulo de resultados.
+
+% ---------------------------------------------------------------------
+\section{Modelos implementados}
+\label{sec:modelos}
+
+Foram implementados os quatro modelos previstos na proposta, cada um representando uma família distinta de classificadores.
+
+\textbf{Random Forest (RF) e Árvore de Decisão (AD).} Implementados com o Scikit-learn, inicialmente com os hiperparâmetros padrão da biblioteca (no RF, 100 árvores) e com ponderação de classes. A semente aleatória foi fixada em 42 em todos os experimentos.
+
+\textbf{Support Vector Machine (SVM).} Implementado com o classificador \texttt{SVC} do Scikit-learn, com núcleo RBF (\textit{Radial Basis Function}) e ponderação de classes. Na tarefa multiclasse, a biblioteca adota a estratégia um-contra-um.
+
+\textbf{Rede Neural Convolucional (CNN).} Conforme previsto na proposta, cada vetor de atributos foi reorganizado em uma matriz bidimensional, de forma análoga a uma imagem com um único canal. Com 42 atributos, a matriz de dimensões $6 \times 7$ comporta todos os atributos sem necessidade de \textit{zero-padding}. A arquitetura adotada, apresentada na Tabela~\ref{tab:cnn}, é composta por duas camadas convolucionais, seguidas de uma camada de \textit{pooling}, de uma camada densa com \textit{dropout} e da camada de saída com função \textit{softmax}. O treinamento utilizou o otimizador Adam, a função de perda entropia cruzada categórica e ponderação das classes calculada da mesma forma que nos demais modelos.
+
+\begin{table}[htbp]
+\centering
+\caption{Arquitetura da CNN (valores entre chaves foram definidos no ajuste de hiperparâmetros).}
+\label{tab:cnn}
+\begin{tabular}{ll}
+\toprule
+\textbf{Camada} & \textbf{Configuração} \\
+\midrule
+Entrada              & matriz $6 \times 7 \times 1$ \\
+Convolucional 1      & $\{f_1\}$ filtros, núcleo $\{k\} \times \{k\}$, ReLU, \textit{padding} ``same'' \\
+Convolucional 2      & $\{f_2\}$ filtros, núcleo $\{k\} \times \{k\}$, ReLU, \textit{padding} ``same'' \\
+\textit{Max pooling} & janela $2 \times 2$ \\
+Achatamento          & \textit{flatten} \\
+Densa                & $\{d\}$ neurônios, ReLU \\
+\textit{Dropout}     & taxa $\{p\}$ \\
+Saída                & 2 ou 7 neurônios, \textit{softmax} \\
+\bottomrule
+\end{tabular}
+\\[2pt]
+\small{Fonte: elaborado pelo autor.}
+\end{table}
+
+% ---------------------------------------------------------------------
+\section{Ajuste de hiperparâmetros}
+\label{sec:hiperparametros}
+
+O ajuste seguiu as estratégias previstas na proposta: busca em grade (\textit{Grid Search}) com validação cruzada estratificada de 5 \textit{folds} para os modelos clássicos e busca aleatória (\textit{Random Search}) com conjunto de validação separado para a CNN. Em todos os casos, o critério de seleção foi o F1-Score macro, calculado sem uso do conjunto de teste. A Tabela~\ref{tab:hiperparametros} resume os espaços de busca e as configurações selecionadas.
+
+\textbf{Random Forest e Árvore de Decisão.} A busca em grade foi realizada sobre o conjunto de treino completo. As grades incluíam a configuração padrão utilizada inicialmente, de modo que o modelo ajustado não pudesse ser pior do que ela na validação cruzada.
+
+\textbf{SVM.} Como cada treinamento do SVM no conjunto completo levava cerca de 10 minutos, a busca em grade foi realizada sobre uma subamostra estratificada do treino com 20.591 amostras, contendo integralmente as classes raras (Okiru e DDoS), 8.000 amostras benignas e até 3.000 amostras das demais classes. Os valores de $\gamma$ foram definidos como múltiplos da referência $\gamma_0 = 1/(n \cdot \sigma^2)$, em que $n$ é o número de atributos e $\sigma^2$ a variância dos dados; esse é o valor adotado por padrão pelo Scikit-learn (\texttt{gamma='scale'}), aproximadamente $0{,}061$ neste conjunto. A busca foi conduzida em duas rodadas:
+\begin{itemize}
+    \item \textbf{Rodada 1:} $C \in \{1, 10, 100\}$ e $\gamma \in \{\gamma_0/4,\ \gamma_0,\ 4\gamma_0\}$, avaliadas pelo F1-macro. A melhor combinação ficou na borda da grade ($C=100$, $\gamma=4\gamma_0$), indicando que valores maiores poderiam ser melhores;
+    \item \textbf{Rodada 2:} grade estendida, com $C \in \{10, 100, 1000\}$ e $\gamma \in \{\gamma_0,\ 4\gamma_0,\ 16\gamma_0\}$. Como a subamostra reduz artificialmente a proporção das classes majoritárias, cada amostra de validação foi ponderada pela razão entre a frequência de sua classe no treino completo e na subamostra, restaurando a prevalência natural das classes no cálculo do F1.
+\end{itemize}
+
+Os parâmetros de cada rodada foram então usados para treinar o SVM no conjunto de treino completo, e a escolha entre as rodadas foi feita pelo F1-macro médio da validação cruzada de 5 \textit{folds} no treino completo, e não pelo desempenho no teste. A rodada 2 foi selecionada nas duas tarefas.
+
+\textbf{CNN.} Do conjunto de treino, foram separados 20\% das amostras (24.720), de forma estratificada, como conjunto de validação, utilizado tanto para a seleção de hiperparâmetros quanto para a parada antecipada (\textit{early stopping}). O treinamento foi interrompido quando a perda na validação não melhorou por 10 épocas consecutivas, com limite de 150 épocas, restaurando-se os pesos da melhor época. Em uma primeira rodada, com limite de 50 épocas e paciência de 5, várias configurações atingiram o limite com a perda de validação ainda em queda, indicando que o treinamento não havia convergido; por isso os limites foram ampliados. O espaço de busca, descrito na Tabela~\ref{tab:hiperparametros}, totaliza 216 combinações, das quais foram avaliadas oito em cada tarefa: a configuração inicial e sete sorteadas aleatoriamente.
+
+\begin{table}[htbp]
+\centering
+\caption{Espaços de busca e hiperparâmetros selecionados.}
+\label{tab:hiperparametros}
+\small
+\begin{tabular}{l>{\raggedright\arraybackslash}p{0.37\textwidth}>{\raggedright\arraybackslash}p{0.2\textwidth}>{\raggedright\arraybackslash}p{0.2\textwidth}}
+\toprule
+\textbf{Modelo} & \textbf{Espaço de busca} & \textbf{Selecionado (binário)} & \textbf{Selecionado (multiclasse)} \\
+\midrule
+RF  & \texttt{n\_estimators} $\in \{50, 100, 200\}$; \texttt{max\_depth} $\in \{\text{sem limite}, 10, 20\}$
+    & 100 árvores, sem limite & 200 árvores, sem limite \\
+\midrule
+AD  & \texttt{criterion} $\in \{\text{gini}, \text{entropia}\}$; \texttt{max\_depth} $\in \{\text{sem limite}, 5, 10, 20\}$; \texttt{min\_samples\_leaf} $\in \{1, 5\}$
+    & gini, prof. 20, folha 1 & gini, prof. 20, folha 1 \\
+\midrule
+SVM & Rodada 2: $C \in \{10, 100, 1000\}$; $\gamma \in \{\gamma_0, 4\gamma_0, 16\gamma_0\}$
+    & $C=1000$, $\gamma=16\gamma_0$ & $C=1000$, $\gamma=16\gamma_0$ \\
+\midrule
+CNN & filtros $(f_1,f_2) \in \{(16,32), (32,64), (64,128)\}$; núcleo $k \in \{2, 3\}$; densa $d \in \{64, 128, 256\}$; \textit{dropout} $p \in \{0{,}2;\ 0{,}3;\ 0{,}5\}$; taxa de aprendizado $\in \{10^{-3}, 3\cdot10^{-4}\}$; lote $\in \{256, 512\}$
+    & (32,64), $k=2$, $d=128$, $p=0{,}3$, $10^{-3}$, lote 256
+    & (32,64), $k=2$, $d=128$, $p=0{,}5$, $10^{-3}$, lote 512 \\
+\bottomrule
+\end{tabular}
+\\[2pt]
+\small{Fonte: elaborado pelo autor.}
+\end{table}
+
+% ---------------------------------------------------------------------
+\section{Protocolo de avaliação}
+\label{sec:avaliacao}
+
+\subsection{Métricas}
+
+Para cada modelo e tarefa, foram calculadas sobre o conjunto de teste a acurácia, a precisão, o \textit{recall} e o F1-Score, definidos na Seção~\ref{sec:metricas-revisao}. Nas tarefas com mais de uma classe de interesse, essas métricas foram agregadas pela média macro, isto é, pela média simples dos valores de cada classe. A média macro atribui o mesmo peso a todas as classes, independentemente de seu tamanho: um modelo que acerta o tráfego benigno mas ignora as classes raras é penalizado, o que não ocorreria com a acurácia ou com a média ponderada. Conforme a proposta, o \textbf{F1-Score macro} foi adotado como critério principal de comparação.
+% TODO: ajuste o \ref acima para a seção da revisão onde as métricas são definidas (ou remova a referência).
+
+\subsection{Variabilidade dos resultados}
+
+Para RF, AD e SVM, a variabilidade foi estimada por validação cruzada estratificada de 5 \textit{folds} sobre o conjunto de treino, reportando-se a média e o desvio padrão de cada métrica. Todos os modelos utilizaram a mesma partição de \textit{folds}. Para a CNN, conforme previsto na proposta, o modelo com os hiperparâmetros selecionados foi treinado cinco vezes com sementes aleatórias diferentes (42, 7, 123, 2024 e 31415), e os resultados no teste foram reportados como média e desvio padrão. Nas demais análises, utilizou-se a execução de F1-macro mediano entre as cinco, de modo a não favorecer a CNN com sua melhor execução nem prejudicá-la com a pior.
+
+\subsection{Custo computacional}
+
+O tempo de inferência foi medido como o tempo médio de predição por amostra, em milissegundos, após uma execução de aquecimento. Para RF, AD e CNN, a medição foi repetida 10 vezes (5 para a CNN) sobre o conjunto de teste completo. Para o SVM, cujo custo de predição por amostra independe do tamanho do lote, a medição foi feita sobre uma subamostra de 5.000 amostras, repetida três vezes. Para garantir uma comparação justa, todos os modelos foram medidos em CPU; o tempo da CNN em GPU também foi registrado, a título informativo. Conforme a proposta, o tempo de treinamento foi registrado como métrica secundária.
+
+\subsection{Teste de significância estatística}
+\label{sec:estatistica}
+
+A proposta previa a aplicação do teste de Wilcoxon sobre os resultados dos 5 \textit{folds}. Durante a implementação, verificou-se que, com apenas cinco pares de observações, o menor p-valor bilateral possível desse teste é $2/2^5 = 0{,}0625$. Ou seja, o teste nunca atingiria significância ao nível $\alpha = 0{,}05$, mesmo que um modelo superasse o outro em todos os \textit{folds}.
+
+Por esse motivo, e com a concordância do orientador, adotou-se como teste principal o \textbf{teste de McNemar}~\cite{mcnemar1947}, recomendado por \citeonline{dietterich1998approximate} para comparar classificadores cujo treinamento é custoso demais para ser repetido muitas vezes, como é o caso do SVM e da CNN neste trabalho. O teste compara dois modelos sobre o mesmo conjunto de teste e considera apenas as amostras em que eles discordam: sendo $b$ o número de amostras que somente o modelo A classifica corretamente e $c$ o número de amostras que somente o modelo B classifica corretamente, a hipótese nula é a de que os dois modelos erram na mesma proporção ($b = c$). Foi utilizada a versão exata do teste, baseada na distribuição binomial, com nível de significância $\alpha = 0{,}05$. Os quatro modelos foram comparados par a par, nas duas tarefas, totalizando 12 comparações. A validação cruzada e as cinco execuções da CNN passaram a ter papel descritivo.
+
+Com cerca de 53 mil amostras de teste, o McNemar é capaz de detectar diferenças muito pequenas. Por isso, além do p-valor, foi reportada a diferença de acurácia entre os modelos, em pontos percentuais, permitindo distinguir significância estatística de relevância prática.
+
+% ---------------------------------------------------------------------
+\section{Experimentos complementares de validade}
+\label{sec:validade}
+
+Além da comparação prevista na proposta, foram conduzidos experimentos para verificar até que ponto os resultados obtidos no conjunto de teste convencional refletem a capacidade real de detecção dos modelos.
+
+\subsection{Ablação da deduplicação}
+
+Para medir o efeito da deduplicação (Seção~\ref{sec:dedup}), o RF binário foi treinado e avaliado em duas condições adicionais: (a) sem a segunda deduplicação; e (b) sem nenhuma deduplicação, com amostragem direta de até 20.000 fluxos por classe a partir dos dados brutos, condição que reproduz o procedimento mais comum na literatura. Em cada condição, foram medidos o F1-macro e a porcentagem de amostras do teste idênticas a amostras do treino.
+
+\subsection{Avaliação deixando um cenário de fora}
+\label{sec:loso}
+
+No protocolo convencional, treino e teste são sorteados do mesmo conjunto, de modo que cada tipo de ataque presente no teste também está representado no treino. Esse protocolo não avalia uma situação central para sistemas de detecção de intrusão: a ocorrência de um ataque proveniente de um malware nunca visto. Para avaliar essa capacidade de generalização, foi adotado o protocolo \textit{leave-one-scenario-out} (LOSO).
+
+Em cada uma de seis rodadas, uma captura maliciosa da Tabela~\ref{tab:cenarios} foi retirada integralmente do treino e utilizada como teste. O treino foi composto pelas outras cinco capturas maliciosas e por 70\% dos fluxos das capturas benignas de \textit{honeypot}; os 30\% restantes foram incluídos no teste de todas as rodadas. Os quatro modelos foram retreinados em cada rodada com os mesmos hiperparâmetros dos modelos finais. Para a CNN, foi utilizada a semente da execução mediana, com conjunto de validação retirado do treino de cada rodada. O SVM foi avaliado apenas na tarefa binária, devido ao custo computacional. Além do F1-macro, foram calculadas três medidas:
+\begin{itemize}
+    \item \textbf{taxa de detecção}: porcentagem dos fluxos maliciosos do cenário retirado que foram classificados como maliciosos;
+    \item \textbf{falsos positivos no benigno do cenário}: porcentagem dos fluxos benignos da própria captura retirada classificados como maliciosos, isto é, tráfego benigno de dispositivos e redes não vistos no treino;
+    \item \textbf{falsos positivos no benigno de \textit{honeypot}}: a mesma medida para os fluxos benignos de \textit{honeypot}, cujo padrão está representado no treino.
+\end{itemize}
+
+\subsection{Distribuição natural das classes}
+
+O teto de amostragem por classe altera a proporção entre as classes em relação aos dados originais. Para verificar o comportamento dos modelos binários na proporção real, foi construído um conjunto de teste adicional com aproximadamente 30.000 fluxos amostrados dos dados brutos na proporção natural de cada classe, excluindo-se os fluxos idênticos a amostras do treino. Esse conjunto foi codificado com o mesmo vocabulário de categorias e normalizado com os mesmos parâmetros aprendidos no treino.
+
+\subsection{Representação das portas}
+\label{sec:exp-portas}
+
+A análise de importância de atributos do RF e os resultados do LOSO, apresentados no Capítulo~\ref{cap:resultados}, levaram à hipótese de que o desempenho dos modelos depende fortemente da forma como as portas de origem e destino são representadas. Para testá-la, foram avaliadas duas variações, mantendo-se fixos os hiperparâmetros dos modelos finais e alterando-se apenas a representação das portas:
+\begin{itemize}
+    \item \textbf{RF e AD sem portas}: remoção dos atributos \texttt{id.resp\_p} e \texttt{id.orig\_p};
+    \item \textbf{CNN com portas categóricas}: as portas deixam de ser tratadas como valores numéricos e passam a ser codificadas por \textit{one-hot}, com uma categoria para cada porta com ao menos 500 ocorrências no treino e uma categoria ``outras'' para as demais. Nesse conjunto, 15 portas de destino e 4 portas de origem receberam categoria própria, elevando o número de atributos para 61, organizados em uma matriz $7 \times 9$ com \textit{zero-padding}. O vocabulário de portas foi definido somente a partir do treino, inclusive em cada rodada do LOSO.
+\end{itemize}
+
+As variações foram avaliadas no protocolo convencional, nas duas tarefas, e no LOSO binário, permitindo verificar o efeito da representação das portas tanto sobre ataques conhecidos quanto sobre ataques inéditos. O SVM não foi incluído nesse experimento devido ao custo computacional.
