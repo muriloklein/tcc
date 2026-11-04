@@ -1,0 +1,10 @@
+\begin{tikzpicture}[node distance=3.5mm, every node/.style={font=\footnotesize, align=center},
+  caixa/.style={draw, rounded corners=2pt, minimum width=0.84\columnwidth, inner sep=3pt}]
+\node[caixa] (a) {Seleção de 9 capturas do IoT-23 (21,2 milhões de fluxos)};
+\node[caixa, below=of a] (b) {Pré-processamento: remoção de identificadores, ausentes,\\ redundância e codificação \textit{one-hot} (42 atributos)};
+\node[caixa, below=of b] (c) {Deduplicação por classe, teto de 20 mil fluxos por classe\\ e nova deduplicação (176.572 amostras)};
+\node[caixa, below=of c] (d) {Divisão estratificada 70/30, normalização e balanceamento};
+\node[caixa, below=of d] (e) {Treinamento e ajuste de RF, AD, SVM e CNN\\ (tarefas binária e multiclasse)};
+\node[caixa, below=of e] (f) {Avaliação: métricas, McNemar e custo computacional;\\ ablação, LOSO e representação das portas};
+\foreach \x/\y in {a/b,b/c,c/d,d/e,e/f} \draw[-latex] (\x) -- (\y);
+\end{tikzpicture}
