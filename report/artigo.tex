@@ -257,10 +257,10 @@ A \autoref{tab:principal} apresenta o desempenho dos modelos finais no conjunto 
 \cmidrule(lr){2-4} \cmidrule(lr){5-7}
 \textbf{Modelo} & \textbf{Acurácia} & \textbf{F1} & \textbf{F1 (rep.)} & \textbf{Acurácia} & \textbf{F1} & \textbf{F1 (rep.)} & \textbf{(ms/amostra)} \\
 \midrule
-AD  & \textbf{0,9991} & \textbf{0,9990} & 0,9989 $\pm$ 0,0002 & \textbf{0,9989} & \textbf{0,9973} & 0,9971 $\pm$ 0,0017 & \textbf{0,0001} \\
-RF  & 0,9985 & 0,9983 & 0,9981 $\pm$ 0,0002 & 0,9986 & 0,9950 & 0,9933 $\pm$ 0,0031 & 0,0045--0,0099 \\
-CNN & 0,9753 & 0,9713 & 0,9703 $\pm$ 0,0035 & 0,9029 & 0,7153 & 0,7370 $\pm$ 0,0482 & 0,029--0,052 \\
-SVM & 0,9611 & 0,9554 & 0,9556 $\pm$ 0,0008 & 0,9226 & 0,7502 & 0,7505 $\pm$ 0,0048 & 0,75--1,60 \\
+AD  & \textbf{0,9991} & \textbf{0,9990} & 0,9989 $\pm$ 0,0002 & \textbf{0,9989} & \textbf{0,9973} & 0,9971 $\pm$ 0,0017 & \textbf{0,0001--0,0002} \\
+RF  & 0,9985 & 0,9983 & 0,9981 $\pm$ 0,0002 & 0,9986 & 0,9950 & 0,9933 $\pm$ 0,0031 & 0,0048--0,0108 \\
+CNN & 0,9753 & 0,9713 & 0,9703 $\pm$ 0,0035 & 0,9029 & 0,7153 & 0,7370 $\pm$ 0,0482 & 0,040--0,048 \\
+SVM & 0,9611 & 0,9554 & 0,9556 $\pm$ 0,0008 & 0,9226 & 0,7502 & 0,7505 $\pm$ 0,0048 & 0,79--1,71 \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -345,7 +345,7 @@ SVM $\times$ CNN  & $-1{,}42$\textsuperscript{*} & $+1{,}96$\textsuperscript{*} 
 \end{tabular}
 \end{table}
 
-Em custo computacional (\autoref{tab:principal}), a AD é o modelo mais eficiente: sua inferência é dezenas de vezes mais rápida que a do RF, centenas de vezes mais rápida que a da CNN em CPU e milhares de vezes mais rápida que a do SVM, que ultrapassa 1,5~ms por amostra na tarefa multiclasse. O treinamento seguiu a mesma ordem: alguns segundos para a AD e o RF e entre 7 e 13 minutos para o SVM. Os tempos de treinamento da CNN variaram muito entre execuções equivalentes, por instabilidade da GPU compartilhada do Colab, e foram tratados apenas como referência.
+Em custo computacional (\autoref{tab:principal}), a AD é o modelo mais eficiente: sua inferência é dezenas de vezes mais rápida que a do RF, centenas de vezes mais rápida que a da CNN em CPU e milhares de vezes mais rápida que a do SVM, que chega a 1,7~ms por amostra na tarefa multiclasse. O treinamento seguiu a mesma ordem: alguns segundos para a AD e o RF e entre 7 e 13 minutos para o SVM. Os tempos de treinamento da CNN variaram muito entre execuções equivalentes, por instabilidade da GPU compartilhada do Colab, e foram tratados apenas como referência.
 
 % ---------------------------------------------------------------------
 \subsection{Importância de atributos}
