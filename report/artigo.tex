@@ -98,7 +98,7 @@ AJUSTAR
 \section{Materiais e métodos}
 \label{sec:metodos}
 
-Esta seção descreve as ferramentas, os dados, o pré-processamento, os modelos e o protocolo de avaliação adotados. Como mostra a \autoref{fig:metodo}, o processo parte da seleção das capturas do IoT-23, passa pela deduplicação e pelo pré-processamento dos fluxos e chega ao treinamento dos quatro modelos, que são avaliados no protocolo convencional e em experimentos de generalização entre capturas e de representação dos atributos.
+Esta seção descreve as ferramentas, os dados, o pré-processamento, os modelos e o protocolo de avaliação adotados. Como mostra a \autoref{fig:metodo}, o processo parte de tráfego de rede oriundo de dispositivos IoT reais, passa pela deduplicação e pelo pré-processamento dos fluxos e chega ao treinamento dos quatro modelos, que são avaliados no protocolo convencional e em experimentos de generalização entre capturas e de representação dos atributos. Esse tráfego provém do IoT-23, um conjunto de dados público com capturas rotuladas de tráfego benigno e malicioso de dispositivos IoT.
 
 \begin{figure}[htbp]
 \centering
@@ -115,7 +115,7 @@ Os experimentos foram implementados em Python 3.13, em um \textit{notebook} exec
 % ---------------------------------------------------------------------
 \subsection{Seleção dos cenários}
 
-Foram utilizados os registros de conexão (\texttt{conn.log.labeled}) de nove capturas do IoT-23, apresentadas na \autoref{tab:cenarios}: seis cenários maliciosos, que contemplam as classes de ataque mais frequentes no conjunto (varredura de portas, Okiru e DDoS), além das classes de comando e controle e de ataque direto, e as três capturas benignas, obtidas de dispositivos reais em ambiente de \textit{honeypot}. As capturas maliciosas também contêm tráfego benigno, gerado pelos próprios dispositivos infectados. Na captura 36-1, foram descartados os fluxos com o rótulo residual \textit{Okiru-Attack}. No total, foram reunidos 21.223.743 fluxos. Ao longo do texto, a classe \textit{PartOfAHorizontalPortScan} é referida como \textit{portscan}.
+O IoT-23 \citep{garcia2020iot23}, publicado pelo Stratosphere Laboratory da Universidade Técnica Tcheca, reúne 23 capturas de tráfego de rede de dispositivos IoT reais: 20 de dispositivos infectados por diferentes malwares e 3 de dispositivos sem infecção. O tráfego de cada captura é resumido em fluxos, isto é, registros de conexão gerados pela ferramenta Zeek, e cada fluxo é rotulado como benigno ou com o tipo de ataque a que pertence. Neste trabalho, foram utilizados esses registros (\texttt{conn.log.labeled}) de nove capturas, apresentadas na \autoref{tab:cenarios}: seis cenários maliciosos, que contemplam as classes de ataque mais frequentes no conjunto (varredura de portas, Okiru e DDoS), além das classes de comando e controle e de ataque direto, e as três capturas benignas, obtidas de dispositivos reais em ambiente de \textit{honeypot}. As capturas maliciosas também contêm tráfego benigno, gerado pelos próprios dispositivos infectados. Na captura 36-1, foram descartados os fluxos com o rótulo residual \textit{Okiru-Attack}. No total, foram reunidos 21.223.743 fluxos. Ao longo do texto, a classe \textit{PartOfAHorizontalPortScan} é referida como \textit{portscan}.
 
 \begin{table}[htbp]
 \centering
@@ -141,7 +141,7 @@ Foram utilizados os registros de conexão (\texttt{conn.log.labeled}) de nove ca
 \end{tabular}
 \end{table}
 
-Já na leitura dos registros, foram descartados os atributos que identificam a conexão ou o momento em que ela ocorreu --- o carimbo de tempo, o identificador do fluxo e os endereços IP --- além de \texttt{tunnel\_parents}, uma vez que poderiam levar o modelo a memorizar dispositivos ou instantes específicos de cada captura, caracterizando vazamento de informação.
+Já na leitura dos registros, foram descartados os atributos que identificam a conexão ou o momento em que ela ocorreu (o carimbo de tempo, o identificador do fluxo e os endereços IP), além de \texttt{tunnel\_parents}, uma vez que poderiam levar o modelo a memorizar dispositivos ou instantes específicos de cada captura, caracterizando vazamento de informação.
 
 % ---------------------------------------------------------------------
 \subsection{Deduplicação e amostragem}
@@ -149,7 +149,7 @@ Já na leitura dos registros, foram descartados os atributos que identificam a c
 
 A análise exploratória revelou que o IoT-23 apresenta um grau extremo de repetição. Como mostra a \autoref{tab:dedup}, os 13,6 milhões de fluxos da classe Okiru correspondem a apenas 621 combinações distintas de atributos, e os 14.394 fluxos de DDoS, a apenas 224. Se o conjunto for dividido sem tratamento, cópias de um mesmo fluxo acabam no treino e no teste, e o modelo é avaliado sobre exemplos já vistos, o que constitui uma forma de vazamento de informação \citep{kapoor2023leakage}.
 
-Por esse motivo, ainda sobre os atributos originais, os fluxos repetidos foram removidos dentro de cada classe e, somente depois, aplicou-se um teto de 20.000 fluxos por classe, por amostragem aleatória, para limitar o custo computacional; a classe benigna foi mantida integralmente. A ordem é relevante: amostrando antes de deduplicar, a classe Okiru era reduzida a apenas dois padrões distintos.
+Por esse motivo, ainda sobre os atributos originais, os fluxos repetidos foram removidos dentro de cada classe e, somente depois, aplicou-se um teto de 20.000 fluxos por classe, por amostragem aleatória, para limitar o custo computacional; a classe benigna foi mantida integralmente. A deduplicação foi feita antes da amostragem porque, na ordem inversa, o teto seria aplicado a classes compostas quase só por cópias: no caso do Okiru, os 20.000 fluxos sorteados corresponderiam a apenas dois padrões distintos, e quase toda a variedade da classe seria perdida.
 
 \begin{table}[htbp]
 \centering
@@ -176,7 +176,7 @@ Attack          &      5.962 &   5.962 &   5.962 \\
 
 Os atributos \texttt{local\_orig} e \texttt{local\_resp}, vazios em todos os fluxos, foram removidos. Para os atributos numéricos que ficam ausentes quando a conexão não é estabelecida (duração e bytes trocados), foi criado um indicador binário de ausência antes do preenchimento com zero, enquanto os categóricos \texttt{service} e \texttt{history} receberam a categoria ``desconhecido''.
 
-A análise exploratória mostrou correlação praticamente perfeita entre os atributos \texttt{*\_ip\_bytes} e \texttt{*\_bytes}, e os primeiros foram removidos por redundância. As categorias de \texttt{history} com menos de 500 ocorrências foram agrupadas, e os atributos \texttt{proto}, \texttt{service}, \texttt{conn\_state} e \texttt{history} foram codificados por \textit{one-hot}. Ao final, cada fluxo passou a ser descrito por 42 atributos. As portas de origem e destino foram mantidas como atributos numéricos, como no trabalho de base \citep{souza2024avaliacao}; o efeito dessa escolha é investigado na \autoref{sec:res-portas} (AJUSTAR).
+Na análise exploratória, verificou-se que os atributos \texttt{orig\_ip\_bytes} e \texttt{resp\_ip\_bytes} acompanham quase exatamente os valores de \texttt{orig\_bytes} e \texttt{resp\_bytes}: ambos medem a quantidade de dados trocados na conexão, e a única diferença é que os primeiros incluem os cabeçalhos IP na contagem. Por repetirem a mesma informação, os atributos \texttt{*\_ip\_bytes} foram removidos.
 
 Como o pré-processamento torna idênticos alguns fluxos originalmente distintos, a deduplicação foi repetida sobre o vetor final de atributos, resultando em 176.572 amostras. A ausência de sobreposição entre treino e teste foi verificada pela comparação de \textit{hashes} dos vetores de atributos.
 
@@ -185,7 +185,7 @@ Como o pré-processamento torna idênticos alguns fluxos originalmente distintos
 
 Os experimentos foram conduzidos em uma tarefa \textbf{binária} (benigno ou malicioso) e em uma tarefa \textbf{multiclasse}, com as sete classes da \autoref{tab:dedup}. O conjunto foi dividido em 70\% para treino (123.600 amostras) e 30\% para teste (52.972 amostras), de forma estratificada pelo rótulo multiclasse, e a tarefa binária utiliza a mesma divisão. Os atributos numéricos foram padronizados com média zero e desvio padrão unitário, com parâmetros calculados apenas sobre o treino.
 
-Para lidar com o desbalanceamento --- no treino multiclasse, a classe benigna tem 86.300 amostras, e as classes Okiru e DDoS, apenas 435 e 156 ---, todos os modelos utilizaram ponderação de classes inversamente proporcional à frequência (\texttt{class\_weight='balanced'}). O SMOTE \citep{chawla2002smote} foi testado apenas na tarefa binária, em comparação com a ponderação de classes, já que, na multiclasse, a interpolação entre os poucos padrões distintos de Okiru e DDoS não acrescentaria informação real.
+O conjunto é fortemente desbalanceado: no treino multiclasse, a classe benigna tem 86.300 amostras, enquanto as classes Okiru e DDoS têm apenas 435 e 156. Para compensar essa diferença, todos os modelos utilizaram ponderação de classes inversamente proporcional à frequência (\texttt{class\_weight='balanced'}), que dá mais peso aos erros cometidos nas classes raras. O SMOTE (\textit{Synthetic Minority Over-sampling Technique}) \citep{chawla2002smote}, técnica que gera amostras sintéticas das classes minoritárias por interpolação entre exemplos vizinhos, foi testado apenas na tarefa binária, em comparação com a ponderação de classes, já que, na multiclasse, a interpolação entre os poucos padrões distintos de Okiru e DDoS não acrescentaria informação real.
 
 % ---------------------------------------------------------------------
 \subsection{Modelos e ajuste de hiperparâmetros}
@@ -244,7 +244,7 @@ Esta seção apresenta o desempenho dos modelos no protocolo convencional, a com
 \subsection{Desempenho no protocolo convencional}
 \label{sec:res-convencional}
 
-A \autoref{tab:principal} apresenta o desempenho dos modelos finais no conjunto de teste. Nas duas tarefas, os modelos baseados em árvores obtiveram desempenho praticamente perfeito, com F1-macro acima de 0,99, e a AD superou ligeiramente o RF. CNN e SVM ficaram em um patamar inferior, com F1-macro de 0,97 e 0,96 na tarefa binária e de 0,72 e 0,75 na multiclasse. Os resultados da validação cruzada e das repetições da CNN são consistentes com os de teste, indicando que o desempenho não depende de uma partição específica dos dados.
+A \autoref{tab:principal} apresenta o desempenho dos modelos finais no conjunto de teste. Nas duas tarefas, os modelos baseados em árvores obtiveram F1-macro acima de 0,99 e acurácia acima de 99,8\%, e a AD superou ligeiramente o RF. CNN e SVM ficaram em um patamar inferior, com F1-macro de 0,97 e 0,96 na tarefa binária e de 0,72 e 0,75 na multiclasse. Os resultados da validação cruzada e das repetições da CNN são consistentes com os de teste, indicando que o desempenho não depende de uma partição específica dos dados.
 
 \begin{table*}[t]
 \centering
@@ -288,7 +288,7 @@ DDoS           &     67 & 1,000 & 0,978 & 0,096 & 0,078 \\
 \end{tabular}
 \end{table}
 
-A \autoref{fig:matrizes} mostra onde estão esses erros. O SVM classifica 18\% dos fluxos de portscan como DDoS e 13\% como C\&C; na CNN, esses percentuais são de 23\% e 17\%. Como portscan é uma classe numerosa, isso corresponde a mais de mil fluxos previstos como DDoS, uma classe com apenas 67 amostras reais, o que derruba a precisão de DDoS para cerca de 0,05, apesar de um \textit{recall} próximo de 0,9. RF e AD praticamente não cometem esses erros.
+A \autoref{fig:matrizes} mostra onde estão esses erros. O SVM classifica 18\% dos fluxos de portscan como DDoS e 13\% como C\&C; na CNN, esses percentuais são de 23\% e 17\%. Como portscan é uma classe numerosa, isso corresponde a mais de mil fluxos previstos como DDoS, uma classe com apenas 67 amostras reais, Por isso, de cada 20 fluxos que o SVM aponta como DDoS, apenas um é de fato DDoS (precisão de cerca de 0,05), embora quase todos os fluxos de DDoS reais sejam encontrados (\textit{recall} próximo de 0,9). RF e AD praticamente não cometem esses erros.
 
 \begin{figure*}[t]
 \centering
@@ -297,7 +297,7 @@ A \autoref{fig:matrizes} mostra onde estão esses erros. O SVM classifica 18\% d
 \label{fig:matrizes}
 \end{figure*}
 
-Quanto ao balanceamento, o SMOTE não trouxe ganho em relação à ponderação de classes na tarefa binária (F1 de 0,9978 contra 0,9983 no RF e de 0,9984 contra 0,9990 na AD), e a ponderação foi mantida nos modelos finais. O ajuste de hiperparâmetros teve efeito pequeno em RF e AD, que já estavam próximos do limite, mas relevante no SVM, cujo F1-macro passou de 0,92 para 0,96 na tarefa binária e de 0,71 para 0,75 na multiclasse. Na CNN multiclasse, as cinco execuções revelaram sensibilidade à semente: a execução com semente 42 alcançou F1 de 0,83, enquanto as demais ficaram entre 0,70 e 0,72, o que justifica o uso da execução mediana nas comparações (\autoref{tab:ajuste}).
+Quanto ao balanceamento, o SMOTE não trouxe ganho em relação à ponderação de classes na tarefa binária (F1 de 0,9978 contra 0,9983 no RF e de 0,9984 contra 0,9990 na AD), e a ponderação foi mantida nos modelos finais. O ajuste de hiperparâmetros teve efeito pequeno em RF e AD, que já estavam próximos do limite, mas relevante no SVM, cujo F1-macro passou de 0,92 para 0,96 na tarefa binária e de 0,71 para 0,75 na multiclasse. Na CNN multiclasse, o resultado variou conforme a semente aleatória, que define os pesos iniciais da rede: a execução com semente 42 alcançou F1 de 0,83, enquanto as demais ficaram entre 0,70 e 0,72. Por isso, as comparações usam a execução de resultado intermediário (mediana), e não a melhor (\autoref{tab:ajuste}).
 
 
 \begin{table}[htbp]
@@ -324,18 +324,18 @@ Quanto ao balanceamento, o SMOTE não trouxe ganho em relação à ponderação 
 % ---------------------------------------------------------------------
 \subsection{Comparação estatística e custo computacional}
 
-A \autoref{tab:mcnemar} apresenta o teste de McNemar. Onze das doze diferenças são significativas, mesmo com a correção de Bonferroni ($\alpha \approx 0{,}0083$), e a única exceção é RF $\times$ AD na tarefa multiclasse ($p = 0{,}076$). As diferenças entre as árvores e o grupo formado por SVM e CNN também são grandes em termos práticos, de 2,3 a 3,8 pontos percentuais (p.p.) de acurácia na tarefa binária e de 7,6 a 9,6 p.p. na multiclasse. Já a superioridade da AD sobre o RF na tarefa binária, embora significativa, corresponde a apenas 31 acertos a mais em 52.972 amostras (0,06 p.p.), o que ilustra a diferença entre significância estatística e relevância prática.
+A \autoref{tab:mcnemar} apresenta o resultado do teste de McNemar. Com exceção do par RF e AD na tarefa multiclasse, todas as diferenças entre os modelos foram consideradas significativas, ou seja, dificilmente são fruto do acaso; nessa tarefa, portanto, RF e AD podem ser considerados equivalentes. As diferenças entre as árvores e o grupo formado por SVM e CNN também são grandes na prática, de 2,3 a 3,8 pontos percentuais (p.p.) de acurácia na tarefa binária e de 7,6 a 9,6 p.p. na multiclasse. Já a vantagem da AD sobre o RF na tarefa binária, embora significativa, corresponde a apenas 31 acertos a mais em 52.972 amostras (0,06 p.p.), uma diferença sem importância prática.
 
 \begin{table}[htbp]
 \centering
-\caption{Teste de McNemar: diferença de acurácia entre os modelos (p.p.; positiva quando o primeiro é superior). * $p < 0{,}001$, significativo com a correção de Bonferroni.}
+\caption{Teste de McNemar: diferença de acurácia entre os modelos (p.p.; positiva quando o primeiro é superior). * diferença significativa.}
 \label{tab:mcnemar}
 \small
 \begin{tabular}{lrr}
 \toprule
 \textbf{Comparação} & \textbf{Binária} & \textbf{Multiclasse} \\
 \midrule
-RF $\times$ AD    & $-0{,}06$\textsuperscript{*} & $-0{,}03$ ($p=0{,}076$) \\
+RF $\times$ AD    & $-0{,}06$\textsuperscript{*} & $-0{,}03$ \\
 RF $\times$ SVM   & $+3{,}74$\textsuperscript{*} & $+7{,}60$\textsuperscript{*} \\
 RF $\times$ CNN   & $+2{,}32$\textsuperscript{*} & $+9{,}57$\textsuperscript{*} \\
 AD $\times$ SVM   & $+3{,}80$\textsuperscript{*} & $+7{,}63$\textsuperscript{*} \\
@@ -345,15 +345,15 @@ SVM $\times$ CNN  & $-1{,}42$\textsuperscript{*} & $+1{,}96$\textsuperscript{*} 
 \end{tabular}
 \end{table}
 
-Em custo computacional (\autoref{tab:principal}), a AD é o modelo mais eficiente: sua inferência é uma a duas ordens de grandeza mais rápida que a do RF e a da CNN em CPU, e cerca de quatro ordens mais rápida que a do SVM, que ultrapassa 1,5~ms por amostra na tarefa multiclasse. O treinamento seguiu a mesma ordem: alguns segundos para a AD e o RF e entre 7 e 13 minutos para o SVM. Os tempos de treinamento da CNN variaram muito entre execuções equivalentes, por instabilidade da GPU compartilhada do Colab, e foram tratados apenas como referência.
+Em custo computacional (\autoref{tab:principal}), a AD é o modelo mais eficiente: sua inferência é dezenas de vezes mais rápida que a do RF, centenas de vezes mais rápida que a da CNN em CPU e milhares de vezes mais rápida que a do SVM, que ultrapassa 1,5~ms por amostra na tarefa multiclasse. O treinamento seguiu a mesma ordem: alguns segundos para a AD e o RF e entre 7 e 13 minutos para o SVM. Os tempos de treinamento da CNN variaram muito entre execuções equivalentes, por instabilidade da GPU compartilhada do Colab, e foram tratados apenas como referência.
 
 % ---------------------------------------------------------------------
 \subsection{Importância de atributos}
 \label{sec:res-importancia}
 
-No RF multiclasse, as portas de destino e de origem responderam, somadas, por 44,9\% da importância total dos atributos (redução média de impureza), e a porta de destino foi o atributo mais importante. Os atributos que descrevem o comportamento da conexão --- duração, pacotes, bytes, estado e histórico --- tiveram importâncias individuais bem menores.
+No RF multiclasse, as portas de destino e de origem responderam, somadas, por 44,9\% da importância total dos atributos (redução média de impureza), e a porta de destino foi o atributo mais importante. Os atributos que descrevem o comportamento da conexão (duração, pacotes, bytes, estado e histórico) tiveram importâncias individuais bem menores.
 
-As portas também explicam o padrão de erros da \autoref{sec:res-convencional}. Como mostra a \autoref{tab:portasclasse}, no treino a classe DDoS usa a porta 80 em 99,4\% dos fluxos, enquanto o portscan se concentra nas portas 23, 22, 8080, 81 e 2323, associadas a serviços como Telnet e SSH, alvos frequentes de varreduras em dispositivos IoT. Já o tráfego benigno é disperso, sem nenhuma porta acima de 3\% dos fluxos. Para uma árvore, separar DDoS de portscan exige uma única regra, como ``porta de destino igual a 80''. Para SVM e CNN, que recebem a porta como um valor numérico padronizado, as portas 22, 23, 80 e 81 são valores praticamente iguais em uma escala que vai até 65.535, e as classes que as utilizam ocupam quase a mesma região do espaço de atributos.
+As portas também explicam o padrão de erros da \autoref{sec:res-convencional}. Como mostra a \autoref{tab:portasclasse}, no treino a classe DDoS usa a porta 80 em 99,4\% dos fluxos, enquanto o portscan se concentra nas portas 23, 22, 8080, 81 e 2323, associadas a serviços como Telnet e SSH, alvos frequentes de varreduras em dispositivos IoT. Já o tráfego benigno é disperso, sem nenhuma porta acima de 3\% dos fluxos. Para uma árvore, separar DDoS de portscan exige uma única regra, como ``porta de destino igual a 80''. Para SVM e CNN, que recebem a porta como um valor numérico padronizado, as portas 22, 23, 80 e 81 são valores muito próximos em uma escala que vai até 65.535, e os fluxos dessas classes acabam ficando muito parecidos entre si.
 
 
 \begin{table}[htbp]
@@ -377,7 +377,7 @@ As portas também explicam o padrão de erros da \autoref{sec:res-convencional}.
 % ---------------------------------------------------------------------
 \subsection{Efeito da deduplicação}
 
-A \autoref{tab:ablacao} resume o experimento de ablação. Sem nenhuma deduplicação, 41,5\% das amostras de teste são idênticas a amostras de treino, ou seja, quase metade da avaliação seria feita sobre exemplos já vistos pelo modelo. Mesmo assim, o F1-macro do RF binário praticamente não se altera (0,9981, contra 0,9983 com deduplicação). Essa comparação deve ser lida com cautela, pois, sem deduplicação, a classe benigna também passa a ser limitada a 20.000 fluxos, o que altera a distribuição das classes. A deduplicação é, portanto, necessária para a correção metodológica, mas o alto desempenho das árvores não é consequência do vazamento: dentro dos cenários estudados, as classes são de fato separáveis. Resultado semelhante foi obtido em um teste com a proporção natural das classes, em que todos os modelos binários superaram F1 de 0,97. Nesse teste, porém, nenhum fluxo de Okiru pôde ser incluído, pois todos os amostrados repetiam padrões já presentes no treino, e o conjunto ficou composto em 97\% por portscan. Assim, o principal indício de que o protocolo convencional superestima o desempenho não vem da repetição de fluxos, mas da avaliação entre capturas, apresentada a seguir.
+A \autoref{tab:ablacao} resume o experimento de ablação. Sem nenhuma deduplicação, 41,5\% das amostras de teste são idênticas a amostras de treino, ou seja, quase metade da avaliação seria feita sobre exemplos já vistos pelo modelo. Mesmo assim, o F1-macro do RF binário quase não muda (0,9981, contra 0,9983 com deduplicação). Essa comparação deve ser lida com cautela, pois, sem deduplicação, a classe benigna também passa a ser limitada a 20.000 fluxos, o que altera a proporção entre as classes. A deduplicação continua sendo necessária para que a avaliação seja correta, mas o alto desempenho das árvores não se explica pela repetição de fluxos: dentro das capturas estudadas, as classes são realmente fáceis de distinguir. Assim, o principal indício de que o protocolo convencional superestima o desempenho não vem da repetição de fluxos, mas da avaliação entre capturas, apresentada a seguir.
 
 
 \begin{table}[htbp]
@@ -431,13 +431,13 @@ Convencional        & 0,998 & 0,999 & 0,955 & 0,971 \\
 \end{tabular}
 \end{table}
 
-Dois casos merecem destaque. Na captura 36-1, nenhum modelo detectou um único fluxo malicioso: as classes Okiru e C\&C-HeartBeat existem apenas nessa captura e, sem exemplos dela no treino, todo o seu tráfego foi classificado como benigno. Na captura 1-1, as taxas de detecção foram altas, mas acompanhadas de 25\% a 76\% de falsos positivos nos fluxos benignos da própria captura, o que mostra que o tráfego benigno de dispositivos não vistos também é difícil de classificar. Na média das seis capturas, essa taxa de falsos positivos foi de 6,0\% no SVM, 7,3\% na CNN, 9,8\% no RF e 17,8\% na AD.
+Outros dois casos merecem destaque. Na captura 36-1, nenhum modelo detectou um único fluxo malicioso: as classes Okiru e C\&C-HeartBeat existem apenas nessa captura e, sem exemplos dela no treino, todo o seu tráfego foi classificado como benigno. Na captura 1-1, as taxas de detecção foram altas, mas acompanhadas de 25\% a 76\% de falsos positivos nos fluxos benignos da própria captura, o que mostra que o tráfego benigno de dispositivos não vistos também é difícil de classificar. Na média das seis capturas, essa taxa de falsos positivos foi de 6,0\% no SVM, 7,3\% na CNN, 9,8\% no RF e 17,8\% na AD.
 
 % ---------------------------------------------------------------------
 \subsection{Efeito da representação das portas}
 \label{sec:res-portas}
 
-A \autoref{tab:portas} mostra que a mudança apenas na representação das portas produziu efeitos opostos nos dois grupos de modelos. Sem as portas, RF e AD perderam desempenho no protocolo convencional --- o F1-macro caiu para 0,83 na tarefa binária e para cerca de 0,46 na multiclasse, em que o \textit{recall} da classe benigna caiu para cerca de 0,75 ---, mas sua taxa de detecção no LOSO aumentou de forma expressiva: de 46\% para 84\% no RF e de 34\% para 92\% na AD, cujo F1-macro médio no LOSO (0,85) superou o de todos os modelos originais. O tráfego do Okiru (captura 36-1), que nenhum modelo original detectava, passou a ser identificado em 96\% dos fluxos pelas duas árvores sem portas (\autoref{tab:portascap}), e a AD sem portas detectou também 100\% da captura 8-1 e 98\% da 34-1, contra 0\% e 25\% originalmente. A \autoref{fig:portas} resume esse efeito.
+A \autoref{tab:portas} mostra que a mudança apenas na representação das portas produziu efeitos opostos nos dois grupos de modelos. Sem as portas, RF e AD perderam desempenho no protocolo convencional: o F1-macro caiu para 0,83 na tarefa binária e para cerca de 0,46 na multiclasse, e cerca de um em cada quatro fluxos benignos passou a ser classificado como ataque. Em compensação, a taxa de detecção no LOSO aumentou muito, de 46\% para 84\% no RF e de 34\% para 92\% na AD. Com isso, a AD sem portas alcançou o maior F1-macro médio no LOSO (0,85) entre todos os modelos avaliados. O tráfego do Okiru (captura 36-1), que nenhum modelo original detectava, passou a ser identificado em 96\% dos fluxos pelas duas árvores sem portas (\autoref{tab:portascap}), e a AD sem portas detectou também 100\% da captura 8-1 e 98\% da 34-1, contra 0\% e 25\% originalmente. A \autoref{fig:portas} resume esse efeito.
 
 \begin{table}[htbp]
 \centering
@@ -496,7 +496,7 @@ SVM & numéricas   & 0,955 & 0,654 & 64,7\% \\
 \end{tabular}
 \end{table}
 
-Na CNN, ocorreu o inverso. Com as portas codificadas como categorias, o F1-macro no protocolo convencional subiu de 0,97 para 0,99 na tarefa binária e de 0,72 para 0,81 na multiclasse, com a precisão em portscan passando de 0,65 para 0,99. Em contrapartida, a detecção média no LOSO caiu de 68\% para 19\%, chegando a zero ou quase zero em quatro das seis capturas. Como RF e AD são determinísticos, as diferenças observadas nesses modelos decorrem exclusivamente da mudança na representação; para a CNN, os resultados referem-se a uma única execução e estão sujeitos à variabilidade entre sementes.
+Na CNN, ocorreu o inverso. Com as portas codificadas como categorias, o F1-macro no protocolo convencional subiu de 0,97 para 0,99 na tarefa binária e de 0,72 para 0,81 na multiclasse, com a precisão em portscan passando de 0,65 para 0,99. Em contrapartida, a detecção média no LOSO caiu de 68\% para 19\%, chegando a zero ou quase zero em quatro das seis capturas. Como RF e AD produzem sempre o mesmo resultado quando treinados com os mesmos dados e a mesma semente, as diferenças observadas nesses modelos decorrem apenas da mudança na representação; para a CNN, os resultados referem-se a uma única execução e estão sujeitos à variabilidade entre sementes.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% SEÇÃO 5 CONSIDERAÇÕES FINAIS
