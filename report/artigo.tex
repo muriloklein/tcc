@@ -78,7 +78,17 @@ Botnets; Cibersegurança; Classificação de Tráfego; Generalização; Represen
 \section{Introdução}
 \label{sec:introducao}
 
-AJUSTAR
+A Internet das Coisas (\textit{Internet of Things}, IoT) conecta à rede objetos do dia a dia, como câmeras, lâmpadas, assistentes de voz e sensores industriais. Ao final de 2024, havia cerca de 18,5 bilhões de dispositivos IoT conectados no mundo, com previsão de 21,1 bilhões ao final de 2025 \citep{iotanalytics2025}. Esse crescimento alcança setores críticos, como saúde, indústria e cidades inteligentes, mas não tem sido acompanhado por um nível equivalente de segurança. Um exemplo conhecido é a \textit{botnet} Mirai, que em 2016 infectou centenas de milhares de câmeras e roteadores explorando senhas padrão e os utilizou em alguns dos maiores ataques de negação de serviço distribuído (DDoS) registrados até então \citep{kolias2017ddos}.
+
+Dispositivos IoT costumam ter recursos computacionais limitados, operar com credenciais padrão e utilizar protocolos historicamente pouco seguros, como o Telnet. Essas características tornam insuficientes as soluções baseadas em regras fixas e em assinaturas, isto é, em padrões de ataques já conhecidos, projetadas para redes convencionais \citep{alfahaid2025survey}. Nesse cenário, o Aprendizado de Máquina (\textit{Machine Learning}, ML) surge como alternativa promissora, capaz de aprender a distinguir o tráfego benigno do malicioso a partir de exemplos, com resultados expressivos reportados na literatura nacional \citep{bochie2020deteccao,souza2024avaliacao}.
+
+Ainda assim, questiona-se se algoritmos de ML desenvolvidos e avaliados em redes convencionais mantêm desempenho adequado diante das características específicas do tráfego IoT, ou se demandam adaptações metodológicas. Além disso, muitos estudos relatam acurácias próximas de 100\%, o que levanta outra questão: em que medida esses resultados refletem a real capacidade de detecção dos modelos, especialmente diante de tráfego de dispositivos e malwares que não estavam presentes no treinamento?
+
+Este trabalho avalia e compara quatro algoritmos de ML na detecção de ataques em redes IoT: \textit{Random Forest} (RF), Árvore de Decisão (AD), \textit{Support Vector Machine} (SVM) e Rede Neural Convolucional (CNN). Os modelos são treinados e testados com o conjunto de dados IoT-23 \citep{garcia2020iot23}, em tarefas de classificação binária e multiclasse, e comparados quanto à eficácia de classificação, ao custo computacional e à significância estatística das diferenças. Além da comparação convencional, o trabalho avalia a capacidade dos modelos de detectar tráfego malicioso de capturas que não foram vistas no treinamento e investiga como a forma de representar os atributos influencia esse comportamento.
+
+Como principais contribuições, destacam-se: a identificação de um grau extremo de repetição de fluxos no IoT-23 e seu tratamento por uma deduplicação em duas etapas, que impede que cópias de um mesmo fluxo apareçam no treino e no teste; a constatação de que a ordem de desempenho entre os modelos se inverte quando eles são avaliados em capturas não vistas; e a identificação das portas de rede como a principal causa dessa inversão.
+
+O restante do texto está organizado da seguinte forma: a \autoref{sec:revisao} apresenta a fundamentação teórica e os trabalhos relacionados; a \autoref{sec:metodos} descreve os materiais e métodos; a \autoref{sec:resultados} apresenta e discute os resultados; e a \autoref{sec:conclusao} traz as considerações finais e as direções para trabalhos futuros.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% SEÇÃO 2 REVISÃO DA LITERATURA
