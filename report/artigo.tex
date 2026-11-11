@@ -120,7 +120,28 @@ Esta seção descreve as ferramentas, os dados, o pré-processamento, os modelos
 % ---------------------------------------------------------------------
 \subsection{Ferramentas}
 
-Os experimentos foram implementados em Python 3.13, em um \textit{notebook} executado no Google Colab com GPU NVIDIA T4, com os dados e os modelos armazenados no Google Drive. Foram utilizadas as bibliotecas Pandas 2.2 e PyArrow, para manipulação dos dados; Scikit-learn 1.6 \citep{pedregosa2011scikit}, para RF, AD, SVM, busca de hiperparâmetros e métricas; imbalanced-learn 0.14 \citep{lemaitre2017imbalanced}, para o SMOTE; Keras com TensorFlow 2.20 \citep{abadi2016tensorflow}, para a CNN; statsmodels 0.15 \citep{seabold2010statsmodels}, para o teste de McNemar; e Matplotlib e Seaborn, para as visualizações.
+Os experimentos foram implementados na linguagem Python, em um \textit{notebook}, documento que reúne código, resultados e textos, executado no Google Colab. O Colab é um serviço do Google que executa código em servidores na nuvem e oferece acesso a uma GPU (placa gráfica) NVIDIA T4, usada para acelerar o treinamento da CNN. Os dados e os modelos treinados foram armazenados no Google Drive. A \autoref{tab:ferramentas} resume as bibliotecas utilizadas e a finalidade de cada uma.
+
+\begin{table}[htbp]
+\centering
+\caption{Ferramentas e bibliotecas utilizadas (quando há duas versões, a primeira refere-se à primeira ferramenta da linha).}
+\label{tab:ferramentas}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.29\columnwidth}l>{\raggedright\arraybackslash}p{0.46\columnwidth}}
+\toprule
+\textbf{Ferramenta} & \textbf{Versão} & \textbf{Uso no trabalho} \\
+\midrule
+Python & 3.13 & linguagem de programação dos experimentos \\
+Pandas e PyArrow & 2.2 / 23.0 & leitura, manipulação e armazenamento dos dados em tabelas \\
+Scikit-learn \citep{pedregosa2011scikit} & 1.6 & RF, AD e SVM, busca de hiperparâmetros e cálculo das métricas \\
+imbalanced-learn \citep{lemaitre2017imbalanced} & 0.14 & aplicação do SMOTE \\
+Keras e TensorFlow \citep{abadi2016tensorflow} & 2.21 & construção e treinamento da CNN \\
+statsmodels \citep{seabold2010statsmodels} & 0.15 & teste de McNemar \\
+Matplotlib e Seaborn & 3.10 / 0.13 & gráficos e figuras \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % ---------------------------------------------------------------------
 \subsection{Seleção dos cenários}
