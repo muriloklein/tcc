@@ -216,48 +216,46 @@ Como o pré-processamento torna idênticos alguns fluxos originalmente distintos
 
 Os experimentos foram conduzidos em uma tarefa \textbf{binária} (benigno ou malicioso) e em uma tarefa \textbf{multiclasse}, com as sete classes da \autoref{tab:dedup}. O conjunto foi dividido em 70\% para treino (123.600 amostras) e 30\% para teste (52.972 amostras), mantendo em cada parte a mesma proporção de cada uma das sete classes observada no conjunto completo (divisão estratificada). A tarefa binária utiliza essa mesma divisão. Em seguida, os atributos numéricos foram padronizados, isto é, colocados em uma mesma escala, para que atributos com valores muito grandes, como a quantidade de bytes, não pesassem mais do que atributos com valores pequenos, como a duração; isso é importante sobretudo para o SVM e a CNN. Os valores usados nessa transformação (a média e o desvio padrão de cada atributo) foram calculados apenas com os dados de treino, para que nenhuma informação do teste fosse usada no treinamento.
 
-O conjunto é fortemente desbalanceado: no treino multiclasse, a classe benigna tem 86.300 amostras, enquanto as classes Okiru e DDoS têm apenas 435 e 156. Para compensar essa diferença, todos os modelos utilizaram ponderação de classes inversamente proporcional à frequência (\texttt{class\_weight='balanced'}), que dá mais peso aos erros cometidos nas classes raras. Também foi testado o SMOTE (\textit{Synthetic Minority Over-sampling Technique}) \citep{chawla2002smote}, técnica que cria exemplos artificiais das classes com poucas amostras, gerando novos pontos entre exemplos parecidos que já existem. O SMOTE foi comparado à ponderação de classes apenas na tarefa binária. Na multiclasse, ele não foi usado porque Okiru e DDoS têm apenas poucas centenas de fluxos distintos, e os exemplos criados a partir deles seriam só variações dos mesmos padrões, sem trazer informação nova.
+O conjunto é fortemente desbalanceado: no treino multiclasse, a classe benigna tem 86.300 amostras, enquanto as classes Okiru e DDoS têm apenas 435 e 156. Para compensar essa diferença, todos os modelos utilizaram ponderação de classes inversamente proporcional à frequência (\texttt{class\_weight='balanced'}), que dá mais peso aos erros cometidos nas classes raras. Também foi testado o SMOTE (\textit{Synthetic Minority Over-sampling Technique}) \citep{chawla2002smote}, técnica que cria exemplos artificiais das classes com poucas amostras, gerando novos pontos entre exemplos parecidos que já existem. O SMOTE foi comparado à ponderação de classes apenas na tarefa binária, em que a classe maliciosa já tinha 37.300 amostras reais no treino e precisou ser pouco mais que duplicada. Na multiclasse, igualar as classes exigiria multiplicar por cerca de 200 as amostras de Okiru e por mais de 500 as de DDoS, e essas classes passariam a ser formadas quase só por exemplos artificiais, criados a partir de poucas centenas de fluxos reais. Por isso, na multiclasse utilizou-se apenas a ponderação de classes, que compensa o desbalanceamento sem criar exemplos..
 
 % ---------------------------------------------------------------------
 \subsection{Modelos e ajuste de hiperparâmetros}
 
-Como a CNN foi criada para processar imagens, cada fluxo, descrito por 42 atributos, foi reorganizado em uma pequena matriz de $6 \times 7$ valores, tratada pela rede como uma imagem. A rede tem duas camadas convolucionais, que extraem padrões de atributos vizinhos na matriz, uma camada de redução (\textit{max pooling}), uma camada densa com \textit{dropout}, técnica que desliga neurônios aleatoriamente durante o treinamento para evitar que a rede apenas memorize os exemplos, e uma camada de saída (\textit{softmax}), que indica a probabilidade de cada classe. O treinamento de uma rede neural é feito em épocas, isto é, passagens completas por todos os exemplos de treino, ao longo das quais os pesos da rede são ajustados aos poucos para reduzir o erro. Utilizou-se o otimizador Adam, que define como esses ajustes são feitos, com no máximo 150 épocas e interrupção automática quando o erro na validação deixava de diminuir por 10 épocas seguidas (\textit{early stopping}). No SVM, utilizou-se o núcleo RBF, que permite separar classes que não podem ser divididas por uma simples reta ou plano. A semente aleatória, que controla os sorteios feitos pelos algoritmos, foi fixada em 42, exceto nas execuções repetidas da CNN (\autoref{sec:avaliacao}).
+Como a CNN foi criada para processar imagens, cada fluxo, descrito por 42 atributos, foi reorganizado em uma pequena matriz de $6 \times 7$ valores, tratada pela rede como uma imagem. A rede tem duas camadas convolucionais, que extraem padrões de atributos vizinhos na matriz, uma camada de redução (\textit{max pooling}), uma camada densa com \textit{dropout}, técnica que desliga neurônios aleatoriamente durante o treinamento para evitar que a rede apenas memorize os exemplos, e uma camada de saída (\textit{softmax}), que indica a probabilidade de cada classe. O treinamento de uma rede neural é feito em épocas, isto é, passagens completas por todos os exemplos de treino, ao longo das quais os pesos da rede são ajustados aos poucos para reduzir o erro. Utilizou-se o otimizador Adam, que define como esses ajustes são feitos, com no máximo 150 épocas e interrupção automática quando o erro na validação deixava de diminuir por 10 épocas seguidas (\textit{early stopping}). No SVM, utilizou-se o núcleo RBF, que permite separar classes que não podem ser divididas por uma simples reta ou plano.
 
-Os hiperparâmetros são configurações definidas antes do treinamento, como o número de árvores do RF ou a profundidade máxima da AD, e não aprendidas a partir dos dados. Seu ajuste utilizou o F1-macro como critério, sem uso do conjunto de teste. Para RF, AD e SVM, foi feita uma busca em grade (\textit{Grid Search}), que testa todas as combinações de uma lista de valores, avaliando cada combinação por validação cruzada de 5 \textit{folds}: o treino é dividido em cinco partes, o modelo é treinado cinco vezes, a cada vez avaliado em uma parte diferente e treinado nas demais, e usa-se a média dos cinco resultados. No caso do SVM, devido ao maior custo de treinamento, a busca foi realizada em uma subamostra estratificada de cerca de 20 mil amostras, na qual a classe benigna foi reduzida; por isso, o F1-macro foi calculado com pesos que restituem a proporção real das classes no treino. Para a CNN, cujo treinamento é mais demorado, foram avaliadas apenas oito combinações sorteadas entre as possíveis (\textit{Random Search}), usando 20\% do treino como validação. Os valores testados e os selecionados estão na \autoref{tab:hiper}. Nas árvores, a profundidade máxima limita quantos níveis de perguntas cada árvore pode fazer, e o critério de divisão define como a qualidade de cada pergunta é medida. No SVM, $C$ controla o quanto o modelo tolera erros no treino, e $\gamma$, o alcance da influência de cada exemplo sobre a fronteira entre as classes. Na CNN, os filtros são os padrões que cada camada convolucional aprende a reconhecer, o núcleo é o tamanho da janela que percorre a matriz, a taxa de aprendizado define o tamanho de cada ajuste dos pesos, e o lote, quantos exemplos são usados em cada ajuste. Os valores escolhidos para o SVM ficaram no limite superior da grade, de modo que o melhor ajuste pode estar além da região explorada, o que constitui uma limitação deste trabalho.
+Várias etapas do trabalho envolvem sorteios feitos pelo computador, como a divisão entre treino e teste, a amostragem dos fluxos, a escolha dos exemplos usados por cada árvore do RF e os pesos iniciais da CNN. Para que os resultados possam ser reproduzidos, esses sorteios foram controlados por uma semente aleatória, um número inicial que faz o computador repetir sempre a mesma sequência de sorteios. Neste trabalho, usou-se o valor 42, escolhido de forma arbitrária. A exceção são as cinco execuções da CNN descritas na \autoref{sec:avaliacao}, feitas com sementes diferentes justamente para medir o quanto o resultado varia de um sorteio para outro.
 
-\begin{table}[htbp]
+Os hiperparâmetros são configurações definidas antes do treinamento, como o número de árvores do RF ou a profundidade máxima da AD, e não aprendidas a partir dos dados. Seu ajuste utilizou o F1-macro como critério, sem uso do conjunto de teste. Para RF, AD e SVM, foi feita uma busca em grade (\textit{Grid Search}), que testa todas as combinações de uma lista de valores, avaliando cada combinação por validação cruzada de 5 \textit{folds}: o treino é dividido em cinco partes, o modelo é treinado cinco vezes, a cada vez avaliado em uma parte diferente e treinado nas demais, e usa-se a média dos cinco resultados. No caso do SVM, devido ao maior custo de treinamento, a busca foi realizada em uma subamostra estratificada de cerca de 20 mil amostras, na qual a classe benigna foi reduzida; por isso, o F1-macro foi calculado com pesos que restituem a proporção real das classes no treino. Para a CNN, cujo treinamento é mais demorado, foram avaliadas apenas oito combinações sorteadas entre as possíveis (\textit{Random Search}), usando 20\% do treino como validação. A \autoref{tab:hiper} apresenta os hiperparâmetros ajustados, o que cada um controla e os valores testados e selecionados. Os valores escolhidos para o SVM ficaram no limite superior da grade, de modo que o melhor ajuste pode estar além da região explorada, o que constitui uma limitação deste trabalho.
+
+\begin{table*}[t]
 \centering
-\caption{Hiperparâmetros testados e selecionados. Quando há dois valores selecionados, o primeiro refere-se à tarefa binária e o segundo, à multiclasse; $\gamma_0 \approx 0{,}061$ é o valor padrão da biblioteca.}
+\caption{Hiperparâmetros ajustados, o que cada um controla, valores testados e valores selecionados. Nos filtros da CNN, 32/64 indica 32 filtros na primeira camada convolucional e 64 na segunda. Quando há dois valores selecionados, o primeiro refere-se à tarefa binária e o segundo, à multiclasse; $\gamma_0 \approx 0{,}061$ é o valor padrão da biblioteca.}
 \label{tab:hiper}
 \small
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{>{\raggedright\arraybackslash}p{0.40\columnwidth}>{\raggedright\arraybackslash}p{0.31\columnwidth}l}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{ll>{\raggedright\arraybackslash}p{0.36\textwidth}>{\raggedright\arraybackslash}p{0.20\textwidth}l}
 \toprule
-\textbf{Hiperparâmetro} & \textbf{Valores testados} & \textbf{Selecionado} \\
+\textbf{Modelo} & \textbf{Hiperparâmetro} & \textbf{O que controla} & \textbf{Valores testados} & \textbf{Selecionado} \\
 \midrule
-\multicolumn{3}{l}{\textit{Random Forest}} \\
-\quad Nº de árvores            & 50, 100, 200          & 100 / 200 \\
-\quad Profundidade máxima      & sem limite, 10, 20    & sem limite \\
+RF  & Nº de árvores              & quantas árvores votam juntas na decisão                    & 50, 100, 200 & 100 / 200 \\
+    & Profundidade máxima        & nº de níveis de perguntas de cada árvore & sem limite, 10, 20 & sem limite \\
 \midrule
-\multicolumn{3}{l}{Árvore de Decisão} \\
-\quad Critério de divisão      & Gini, entropia        & Gini \\
-\quad Profundidade máxima      & sem limite, 5, 10, 20 & 20 \\
-\quad Mín. de amostras por folha & 1, 5 & 1 \\
+AD  & Critério de divisão        & como a qualidade de cada pergunta é medida & Gini, entropia & Gini \\
+    & Profundidade máxima        & nº de níveis de perguntas da árvore & sem limite, 5, 10, 20 & 20 \\
+    & Mín. de amostras por folha & mínimo de exemplos em cada resposta final & 1, 5 & 1 \\
 \midrule
-\multicolumn{3}{l}{SVM} \\
-\quad $C$                      & 10, 100, 1000         & 1000 \\
-\quad $\gamma$                 & $\gamma_0$, $4\gamma_0$, $16\gamma_0$ & $16\gamma_0$ \\
+SVM & $C$                        & o quanto o modelo tolera erros no treino                   & 10, 100, 1000 & 1000 \\
+    & $\gamma$                   & alcance da influência de cada exemplo & $\gamma_0$, $4\gamma_0$, $16\gamma_0$ & $16\gamma_0$ \\
 \midrule
-\multicolumn{3}{l}{CNN} \\
-\quad Filtros por camada       & (16, 32), (32, 64), (64, 128) & (32, 64) \\
-\quad Tamanho do núcleo        & 2, 3                  & 2 \\
-\quad Neurônios da camada densa & 64, 128, 256         & 128 \\
-\quad \textit{Dropout}         & 0,2; 0,3; 0,5         & 0,3 / 0,5 \\
-\quad Taxa de aprendizado      & $10^{-3}$, $3 \cdot 10^{-4}$ & $10^{-3}$ \\
-\quad Tamanho do lote          & 256, 512              & 256 / 512 \\
+CNN & Filtros por camada         & nº de padrões que cada camada aprende & 16/32, 32/64, 64/128 & 32/64 \\
+    & Tamanho do núcleo          & tamanho da janela que percorre a matriz & 2, 3 & 2 \\
+    & Camada densa               & neurônios que combinam os padrões & 64, 128, 256 & 128 \\
+    & \textit{Dropout}           & fração de neurônios desligada no treino & 0,2; 0,3; 0,5 & 0,3 / 0,5 \\
+    & Taxa de aprendizado        & tamanho de cada ajuste dos pesos & $10^{-3}$, $3 \cdot 10^{-4}$ & $10^{-3}$ \\
+    & Tamanho do lote            & exemplos usados em cada ajuste & 256, 512 & 256 / 512 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 % ---------------------------------------------------------------------
 \subsection{Protocolo de avaliação}
@@ -265,6 +263,7 @@ Os hiperparâmetros são configurações definidas antes do treinamento, como o 
 
 Os modelos finais foram avaliados no conjunto de teste pela acurácia e pela precisão, \textit{recall} e F1-Score em média macro, sendo o \textbf{F1-macro} o critério principal, e pelo tempo de inferência por amostra, medido em CPU. A estabilidade dos resultados foi verificada por validação cruzada de 5 \textit{folds} no treino, para RF, AD e SVM, e, para a CNN, por cinco execuções com as sementes 42, 7, 123, 2024 e 31415; nas análises seguintes, utilizou-se a execução da CNN com F1 mediano. A importância de cada atributo foi estimada pelo próprio RF multiclasse, a partir do quanto as divisões feitas com aquele atributo ajudam a separar as classes nas árvores (redução média de impureza, MDI).
 
+As diferenças entre os modelos foram avaliadas pelo teste de McNemar exato (\autoref{sec:rev-metricas}), aplicado par a par sobre as predições no conjunto de teste, nas duas tarefas. O teste considera apenas se cada modelo acertou ou errou cada amostra, o que permite aplicá-lo da mesma forma às tarefas binária e multiclasse. Como cada tarefa envolve seis comparações, aumenta a chance de alguma diferença parecer significativa apenas por acaso. Para compensar, adotou-se a correção de Bonferroni \citep{dunn1961multiple}, recomendada por \citet{salzberg1997comparing} na comparação entre classificadores, que torna o critério mais exigente: em vez do limite usual de 5\%, uma diferença só foi considerada significativa quando o teste indicou menos de 0,8\% de chance de ela ser fruto do acaso (5\% divididos pelas seis comparações).
 
 Além da avaliação convencional, foram realizados três experimentos complementares:
 \begin{itemize}
