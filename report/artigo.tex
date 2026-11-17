@@ -417,7 +417,7 @@ DDoS           &     67 & 1,000 & 0,978 & 0,096 & 0,078 \\
 \end{tabular}
 \end{table}
 
-A \autoref{fig:matrizes} mostra onde estão esses erros, por meio de matrizes de confusão, que cruzam a classe real de cada fluxo com a classe prevista pelo modelo. O SVM classifica 18\% dos fluxos de portscan como DDoS e 13\% como C\&C; na CNN, esses percentuais são de 23\% e 17\%. Como portscan é uma classe numerosa, isso corresponde a mais de mil fluxos previstos como DDoS, uma classe com apenas 67 amostras reais. Por isso, de cada 20 fluxos que o SVM aponta como DDoS, apenas um é de fato DDoS (precisão de cerca de 0,05), embora quase todos os fluxos de DDoS reais sejam encontrados (\textit{recall} próximo de 0,9). RF e AD praticamente não cometem esses erros.
+A \autoref{fig:matrizes} mostra onde estão esses erros, por meio de matrizes de confusão, que cruzam a classe real de cada fluxo com a classe prevista pelo modelo. O SVM classifica 18\% dos fluxos de portscan como DDoS e 13\% como C\&C; na CNN, esses percentuais são de 23\% e 17\%. Como portscan é uma classe numerosa, isso corresponde a mais de mil fluxos previstos como DDoS, uma classe com apenas 67 amostras reais. Por isso, de cada 20 fluxos que o SVM aponta como DDoS, apenas um é de fato DDoS (precisão de cerca de 0,05), embora quase todos os fluxos de DDoS reais sejam encontrados (\textit{recall} próximo de 0,9). RF e AD quase não cometem esses erros: o F1 de ambos fica acima de 0,97 em todas as classes, inclusive DDoS (\autoref{tab:f1classe}).
 
 \begin{figure*}[t]
 \centering
@@ -628,6 +628,11 @@ SVM & numéricas   & 0,955 & 0,654 & 64,7\% \\
 
 Na CNN, ocorreu o inverso. Com as portas codificadas como categorias, o F1-macro no protocolo convencional subiu de 0,97 para 0,99 na tarefa binária e de 0,72 para 0,81 na multiclasse, com a precisão em portscan passando de 0,65 para 0,99. Em contrapartida, a detecção média no LOSO caiu de 68\% para 19\%, chegando a zero ou quase zero em quatro das seis capturas. Como RF e AD produzem sempre o mesmo resultado quando treinados com os mesmos dados e a mesma semente, as diferenças observadas nesses modelos decorrem apenas da mudança na representação; para a CNN, os resultados referem-se a uma única execução e estão sujeitos à variabilidade entre sementes.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% SEÇÃO 4.7 DISCUSSÃO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% ---------------------------------------------------------------------
 \subsection{Discussão}
 \label{sec:discussao}
 
@@ -652,6 +657,7 @@ Este trabalho comparou RF, AD, SVM e CNN na detecção de ataques em redes IoT c
 No protocolo convencional, os modelos baseados em árvores obtiveram F1-macro acima de 0,99 nas duas tarefas, superando CNN e SVM com diferenças estatisticamente significativas, e a AD apresentou também o menor custo de treinamento e de inferência. A avaliação em capturas não vistas, porém, inverteu essa ordem: SVM e CNN detectaram, em média, 65\% e 68\% do tráfego malicioso dessas capturas, contra 46\% e 34\% das árvores. A análise de importância de atributos e o experimento com a representação das portas mostraram que essa inversão decorre da forma como os modelos utilizam as portas: as árvores as memorizam como assinaturas de cada malware, enquanto SVM e CNN dependem mais do comportamento da conexão. Sem as portas, a AD passou a detectar 92\% do tráfego malicioso das capturas não vistas, contra 34\% com elas.
 
 Conclui-se que a escolha do protocolo de avaliação e da representação dos atributos é tão determinante quanto a escolha do algoritmo, e que acurácias próximas de 100\% no protocolo convencional não garantem a detecção de ameaças novas. Como trabalhos futuros, sugerem-se: a combinação de modelos especialistas e generalistas, ou de classificação supervisionada e detecção por anomalia; representações intermediárias das portas, como faixas de portas conhecidas, registradas e dinâmicas; a validação em conjuntos de dados mais recentes, como o CIC-IoT2023 \citep{neto2023ciciot2023}; e a extensão do experimento das portas ao SVM e a múltiplas sementes da CNN.
+
 
 \bibliography{referencias}
 
