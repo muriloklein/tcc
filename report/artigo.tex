@@ -36,7 +36,7 @@
 
 %%% Ano, mês e curso
 \jyear{2026}
-\jmonth{Dezembro}      % TODO: mês da defesa
+\jmonth{Dezembro}
 \jcourse{Ciência da Computação}
 
 \setcounter{page}{1}
@@ -50,7 +50,7 @@
 \thispagestyle{empty}
 
 \begin{Abstract}
-\textbf{Background:} Internet of Things devices have expanded the attack surface of networks, and machine learning has been used to detect malicious traffic. This work compared Decision Tree, Random Forest, Support Vector Machine and a Convolutional Neural Network on the IoT-23 dataset, in binary and multiclass tasks, after removing the extreme repetition of network flows. The models were also tested on traffic captures absent from training. \textbf{Results:} in the conventional evaluation, the tree-based models reached macro F1-scores above 0.99, significantly outperforming the other models, and the Decision Tree had the lowest computational cost. On the unseen captures, however, the ranking was inverted: the convolutional network and the support vector machine detected 68\% and 65\% of the malicious traffic, against 46\% for the Random Forest and 34\% for the Decision Tree. Without the port attributes, the Decision Tree detection rose to 92\%. \textbf{Conclusions:} the trees memorized the ports used by each malware, and the way models are evaluated and features are represented proved as important as the choice of algorithm.
+Internet of Things devices have expanded the attack surface of networks, and machine learning has been used to detect malicious traffic. This work compared Decision Tree, Random Forest, Support Vector Machine and a Convolutional Neural Network on the IoT-23 dataset, in binary and multiclass tasks, after removing the extreme repetition of network flows. The models were also tested on traffic captures absent from training. The main results show that, in the conventional evaluation, the tree-based models reached macro F1-scores above 0.99, significantly outperforming the other models, and the Decision Tree had the lowest computational cost. On the unseen captures, the ranking was inverted: the convolutional network and the support vector machine detected 68\% and 65\% of the malicious traffic, against 46\% for the Random Forest and 34\% for the Decision Tree. Without the port attributes, the Decision Tree detection rose to 92\%. It is concluded that the trees memorized the ports used by each malware and that the way models are evaluated and features are represented proved as important as the choice of algorithm.
 \end{Abstract}
 
 \begin{keywords}
@@ -58,7 +58,7 @@ Botnets; Cybersecurity; Feature Representation; Generalization; Traffic Classifi
 \end{keywords}
 
 \begin{resumo}
-\textbf{Contexto:} a Internet das Coisas ampliou a superfície de ataque das redes, e o aprendizado de máquina tem sido usado para detectar tráfego malicioso. Este trabalho comparou Árvore de Decisão, \textit{Random Forest}, \textit{Support Vector Machine} e uma Rede Neural Convolucional no conjunto de dados IoT-23, em tarefas binária e multiclasse, após remover a repetição extrema de fluxos. Os modelos também foram testados em capturas ausentes do treinamento. \textbf{Resultados:} na avaliação convencional, os modelos baseados em árvores alcançaram F1-Score macro acima de 0,99, superando os demais de forma significativa, e a Árvore de Decisão teve o menor custo computacional. Nas capturas não vistas, porém, a ordem se inverteu: a rede convolucional e a \textit{Support Vector Machine} detectaram 68\% e 65\% do tráfego malicioso, contra 46\% do \textit{Random Forest} e 34\% da Árvore de Decisão. Sem as portas, a detecção da Árvore de Decisão subiu para 92\%. \textbf{Conclusões:} as árvores memorizaram as portas de cada malware, e a forma de avaliar os modelos e de representar os atributos foi tão importante quanto a escolha do algoritmo.
+A Internet das Coisas ampliou a superfície de ataque das redes, e o aprendizado de máquina tem sido usado para detectar tráfego malicioso. Este trabalho comparou Árvore de Decisão, \textit{Random Forest}, \textit{Support Vector Machine} e uma Rede Neural Convolucional no conjunto de dados IoT-23, em tarefas binária e multiclasse, após remover a repetição extrema de fluxos. Os modelos também foram testados em capturas ausentes do treinamento. Como principais resultados, destaca-se que, na avaliação convencional, os modelos baseados em árvores alcançaram F1-Score macro acima de 0,99, superando os demais de forma significativa, e a Árvore de Decisão teve o menor custo computacional. Nas capturas não vistas, a ordem se inverteu: a rede convolucional e a \textit{Support Vector Machine} detectaram 68\% e 65\% do tráfego malicioso, contra 46\% do \textit{Random Forest} e 34\% da Árvore de Decisão. Sem as portas, a detecção da Árvore de Decisão subiu para 92\%. Conclui-se que as árvores memorizaram as portas de cada malware e que a forma de avaliar os modelos e de representar os atributos foi tão importante quanto a escolha do algoritmo.
 \end{resumo}
 
 \begin{palavras_chave}
