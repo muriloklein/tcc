@@ -482,8 +482,7 @@ Em custo computacional (\autoref{tab:principal}), a AD é o modelo mais eficient
 
 A importância de atributos indica o quanto cada atributo foi usado pelo RF para separar as classes, e a soma das importâncias de todos os atributos é 100\% (\autoref{sec:avaliacao}). No RF multiclasse, as portas de destino e de origem responderam, somadas, por 44,9\% desse total, e a porta de destino foi, sozinha, o atributo mais importante. Os atributos que descrevem o comportamento da conexão (duração, pacotes, bytes, estado e histórico) tiveram importâncias individuais bem menores.
 
-As portas também explicam o padrão de erros da \autoref{sec:res-convencional}. Como mostra a \autoref{tab:portasclasse}, no treino a classe DDoS usa a porta 80 em 99,4\% dos fluxos, enquanto o portscan se concentra nas portas 23, 22, 8080, 81 e 2323, associadas a serviços como Telnet e SSH, alvos frequentes de varreduras em dispositivos IoT. Isso ilustra, nos próprios dados, duas das principais falhas listadas pela OWASP: serviços de rede inseguros expostos e senhas fracas \citep{owasp2018iot}. Já o tráfego benigno é disperso, sem nenhuma porta acima de 3\% dos fluxos. Para uma árvore, separar DDoS de portscan exige uma única regra, como ``porta de destino igual a 80''. Para SVM e CNN, que recebem a porta como um valor numérico padronizado, as portas 22, 23, 80 e 81 são valores muito próximos em uma escala que vai até 65.535, e os fluxos dessas classes acabam ficando muito parecidos entre si.
-
+As portas também explicam o padrão de erros da \autoref{sec:res-convencional}. Como mostra a \autoref{tab:portasclasse}, no treino a classe DDoS usa a porta 80 em 99,4\% dos fluxos, enquanto o portscan se concentra nas portas 23, 22, 8080, 81 e 2323, associadas a serviços como Telnet e SSH, alvos frequentes de varreduras em dispositivos IoT. Isso ilustra, nos próprios dados, duas das principais falhas listadas pela OWASP: serviços de rede inseguros expostos e senhas fracas \citep{owasp2018iot}. Já o tráfego benigno é disperso, sem nenhuma porta acima de 3\% dos fluxos.
 
 \begin{table}[htbp]
 \centering
@@ -503,12 +502,13 @@ As portas também explicam o padrão de erros da \autoref{sec:res-convencional}.
 \end{tabular}
 \end{table}
 
+Para uma árvore, separar DDoS de portscan exige uma única regra, como ``porta de destino igual a 80''. Para SVM e CNN, que recebem a porta como um valor numérico padronizado, as portas 22, 23, 80 e 81 são valores muito próximos em uma escala que vai até 65.535, e os fluxos dessas classes acabam ficando muito parecidos entre si.
+
 % ---------------------------------------------------------------------
 \subsection{Efeito da deduplicação}
 \label{sec:res-dedup}
 
-A \autoref{tab:ablacao} resume o experimento de ablação (\autoref{sec:avaliacao}), em que o RF binário foi treinado novamente sem as etapas de deduplicação para medir o efeito de cada uma. Sem nenhuma deduplicação, 41,5\% das amostras de teste são idênticas a amostras de treino, ou seja, quase metade da avaliação seria feita sobre exemplos já vistos pelo modelo. Mesmo assim, o F1-macro do RF binário quase não muda (0,9981, contra 0,9983 com deduplicação). Essa comparação deve ser lida com cautela, pois, sem deduplicação, a classe benigna também passa a ser limitada a 20.000 fluxos, o que altera a proporção entre as classes. A deduplicação continua sendo necessária para que a avaliação seja correta, mas o alto desempenho das árvores não se explica pela repetição de fluxos: dentro das capturas estudadas, as classes são realmente fáceis de distinguir. Assim, o principal indício de que o protocolo convencional superestima o desempenho não vem da repetição de fluxos, mas da avaliação entre capturas, apresentada a seguir.
-
+A \autoref{tab:ablacao} resume o experimento de ablação (\autoref{sec:avaliacao}), em que o RF binário foi treinado novamente sem as etapas de deduplicação para medir o efeito de cada uma. Sem nenhuma deduplicação, 41,5\% das amostras de teste são idênticas a amostras de treino, ou seja, quase metade da avaliação seria feita sobre exemplos já vistos pelo modelo. Mesmo assim, o F1-macro do RF binário quase não muda (0,9981, contra 0,9983 com deduplicação).
 
 \begin{table}[htbp]
 \centering
@@ -525,6 +525,8 @@ Deduplicação completa    &  0,00\% & 0,9983 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+Essa comparação deve ser lida com cautela, pois, sem deduplicação, a classe benigna também passa a ser limitada a 20.000 fluxos, o que altera a proporção entre as classes. A deduplicação continua sendo necessária para que a avaliação seja correta, mas o alto desempenho das árvores não se explica pela repetição de fluxos: dentro das capturas estudadas, as classes são realmente fáceis de distinguir. Assim, o principal indício de que o protocolo convencional superestima o desempenho não vem da repetição de fluxos, mas da avaliação entre capturas, apresentada a seguir.
 
 % ---------------------------------------------------------------------
 \subsection{Generalização para capturas não vistas}
