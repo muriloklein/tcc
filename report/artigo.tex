@@ -12,10 +12,6 @@
 %%% Pacotes (só os usados; menos pacotes = compilação mais rápida no Overleaf)
 \usepackage{lmodern}
 \usepackage{multirow}
-%%% O fluxograma da metodologia está pronto em figuras/fluxograma_metodologia.pdf
-%%% (código TikZ original em figuras/fluxograma_metodologia_tikz.txt).
-%%%
-
 %%% Permite que figuras/tabelas dividam a coluna com o texto, em vez de ocuparem
 %%% uma coluna inteira sozinhas (evita colunas com grande espaço em branco)
 \renewcommand{\topfraction}{0.85}
@@ -24,7 +20,6 @@
 \renewcommand{\floatpagefraction}{0.8}
 \renewcommand{\dbltopfraction}{0.85}
 \renewcommand{\dblfloatpagefraction}{0.8}
-
 %%% Quando uma coluna ou página tem só figuras/tabelas, empilhá-las a partir do topo
 %%% (o padrão do LaTeX as espalha verticalmente, deixando buracos)
 \makeatletter
@@ -35,6 +30,9 @@
 \setlength{\@dblfpsep}{12pt plus 2pt}
 \setlength{\@dblfpbot}{0pt plus 1fil}
 \makeatother
+%%% O fluxograma da metodologia está pronto em figuras/fluxograma_metodologia.pdf
+%%% (código TikZ original em figuras/fluxograma_metodologia_tikz.txt).
+%%%
 
 %%% Título
 \title{Detecção de Ataques em Redes IoT: Uma Análise Comparativa de Algoritmos de Aprendizado de Máquina no IoT-23}
@@ -349,7 +347,7 @@ CNN & Filtros por camada         & nº de padrões que cada camada aprende & 16/
 \end{tabular}
 \end{table*}
 
-Como o treinamento do SVM é lento, sua busca foi feita em uma parte menor do treino, com cerca de 20 mil amostras e menos fluxos benignos, e o F1-macro foi corrigido para refletir a proporção real das classes. Para a CNN, também mais demorada, foram testadas apenas oito combinações sorteadas entre as possíveis (\textit{Random Search}), usando 20\% do treino como validação. A \autoref{tab:hiper} mostra os hiperparâmetros ajustados, o que cada um controla e os valores testados e escolhidos. No SVM, os valores escolhidos ficaram no limite superior da grade, de modo que o melhor ajuste pode estar além dos valores testados, o que é uma limitação deste trabalho.
+Como o treinamento do SVM é lento, sua busca foi feita em uma parte menor do treino, com cerca de 20 mil amostras e menos fluxos benignos, e o F1-macro foi corrigido para refletir a proporção real das classes. Para a CNN, também mais demorada, foram testadas apenas oito combinações, a configuração padrão e outras sete sorteadas entre as possíveis (\textit{Random Search}), usando 20\% do treino como validação. A \autoref{tab:hiper} mostra os hiperparâmetros ajustados, o que cada um controla e os valores testados e escolhidos. No SVM, os valores escolhidos ficaram no limite superior da grade, de modo que o melhor ajuste pode estar além dos valores testados, o que é uma limitação deste trabalho.
 
 % ---------------------------------------------------------------------
 \subsection{Protocolo de avaliação}
@@ -401,7 +399,7 @@ SVM & 0,9611 & 0,9554 & 0,9556 $\pm$ 0,0008 & 0,9226 & 0,7502 & 0,7505 $\pm$ 0,0
 \end{tabular}
 \end{table*}
 
-Na tarefa binária, a diferença entre os grupos se deve sobretudo a falsos positivos: o SVM detecta 99,7\% dos fluxos maliciosos, mas classifica corretamente apenas 94,6\% dos benignos, o que reduz a precisão da classe maliciosa para 0,89. Na multiclasse, a \autoref{tab:f1classe} mostra que RF e AD superam 0,98 em todas as classes, enquanto SVM e CNN reconhecem bem as classes Attack, benigna, C\&C e C\&C-HeartBeat, mas têm desempenho baixo em portscan, Okiru e, principalmente, DDoS.
+Na tarefa binária, a diferença entre os grupos se deve sobretudo a falsos positivos: o SVM detecta 99,7\% dos fluxos maliciosos, mas classifica corretamente apenas 94,6\% dos benignos, o que reduz a precisão da classe maliciosa para 0,89. Na multiclasse, a \autoref{tab:f1classe} mostra que RF e AD superam 0,97 em todas as classes, enquanto SVM e CNN reconhecem bem as classes Attack, benigna, C\&C e C\&C-HeartBeat, mas têm desempenho baixo em portscan, Okiru e, principalmente, DDoS.
 
 \begin{table}[htbp]
 \centering
@@ -482,7 +480,7 @@ SVM $\times$ CNN  & $-1{,}42$\textsuperscript{*} & $+1{,}96$\textsuperscript{*} 
 \end{tabular}
 \end{table}
 
-Em custo computacional (\autoref{tab:principal}), a AD é o modelo mais eficiente: sua inferência é dezenas de vezes mais rápida que a do RF, centenas de vezes mais rápida que a da CNN em CPU e milhares de vezes mais rápida que a do SVM, que chega a 1,7~ms por amostra na tarefa multiclasse. O treinamento seguiu a mesma ordem: alguns segundos para a AD e o RF e entre 7 e 13 minutos para o SVM. Os tempos de treinamento da CNN variaram muito entre execuções equivalentes, por instabilidade da GPU compartilhada do Colab, e foram tratados apenas como referência.
+Em custo computacional (\autoref{tab:principal}), a AD é o modelo mais eficiente: sua inferência é dezenas de vezes mais rápida que a do RF, centenas de vezes mais rápida que a da CNN em CPU e milhares de vezes mais rápida que a do SVM, que chega a 1,7~ms por amostra na tarefa multiclasse. O treinamento seguiu a mesma ordem: alguns segundos para a AD e o RF e entre 7 e 13 minutos para o SVM. Os tempos de treinamento da CNN variaram muito entre execuções equivalentes, possivelmente por instabilidade da GPU compartilhada do Colab, e foram tratados apenas como referência.
 
 % ---------------------------------------------------------------------
 \subsection{Importância de atributos}
@@ -540,7 +538,7 @@ Essa comparação deve ser lida com cautela, pois, sem deduplicação, a classe 
 \subsection{Generalização para capturas não vistas}
 \label{sec:res-loso}
 
-A \autoref{fig:loso} mostra a taxa de detecção de cada modelo no protocolo LOSO, em que o tráfego malicioso de cada captura é avaliado sem que ela tenha sido vista no treino. Todos os modelos sofreram queda acentuada, mas a ordem entre eles se inverteu. As árvores, que lideravam o protocolo convencional, foram as que mais perderam desempenho: o F1-macro médio caiu de 0,998 para 0,47 no RF e de 0,999 para 0,35 na AD, com detecção média de 46\% e 34\%. SVM e CNN mantiveram F1-macro médio de 0,65 (\autoref{tab:loso}) e detectaram, em média, 65\% e 68\% dos fluxos maliciosos das capturas não vistas. Nas capturas 8-1 e 9-1, por exemplo, SVM e CNN detectaram todo o tráfego malicioso, enquanto a AD detectou nenhum e 50\% dele, respectivamente. Esses dois casos são reveladores, pois as classes dessas capturas (C\&C e portscan) estavam presentes no treino, vindas de outras capturas: as árvores falharam mesmo diante de classes conhecidas, o que indica que aprenderam padrões específicos de cada captura, e não do tipo de ataque.
+A \autoref{fig:loso} mostra a taxa de detecção de cada modelo no protocolo LOSO, em que o tráfego malicioso de cada captura é avaliado sem que ela tenha sido vista no treino. Todos os modelos sofreram queda acentuada, mas a ordem entre eles se inverteu. As árvores, que lideravam o protocolo convencional, foram as que mais perderam desempenho: o F1-macro médio caiu de 0,998 para 0,47 no RF e de 0,999 para 0,35 na AD, com detecção média de 46\% e 34\%. SVM e CNN mantiveram F1-macro médio de 0,65 (\autoref{tab:loso}) e detectaram, em média, 65\% e 68\% dos fluxos maliciosos das capturas não vistas. Nas capturas 8-1 e 9-1, por exemplo, SVM e CNN detectaram todo o tráfego malicioso, enquanto a AD não detectou nenhum fluxo malicioso na 8-1 e detectou metade deles na 9-1. Esses dois casos são reveladores, pois as classes dessas capturas (C\&C e portscan) estavam presentes no treino, vindas de outras capturas: as árvores falharam mesmo diante de classes conhecidas, o que indica que aprenderam padrões específicos de cada captura, e não do tipo de ataque.
 
 \begin{figure}[htbp]
 \centering
@@ -571,13 +569,13 @@ Convencional        & 0,998 & 0,999 & 0,955 & 0,971 \\
 \end{tabular}
 \end{table}
 
-Outros dois casos merecem destaque. Na captura 36-1, nenhum modelo detectou um único fluxo malicioso: as classes Okiru e C\&C-HeartBeat existem apenas nessa captura e, sem exemplos dela no treino, todo o seu tráfego foi classificado como benigno. Na captura 1-1, as taxas de detecção foram altas, mas acompanhadas de 25\% a 76\% de falsos positivos nos fluxos benignos da própria captura, o que mostra que o tráfego benigno de dispositivos não vistos também é difícil de classificar. Na média das seis capturas, essa taxa de falsos positivos foi de 6,0\% no SVM, 7,3\% na CNN, 9,8\% no RF e 17,8\% na AD. A subseção seguinte investiga a causa da diferença de generalização entre as árvores e os demais modelos..
+Outros dois casos merecem destaque. Na captura 36-1, nenhum modelo detectou um único fluxo malicioso: as classes Okiru e C\&C-HeartBeat existem apenas nessa captura e, sem exemplos dela no treino, todo o seu tráfego foi classificado como benigno. Na captura 1-1, as taxas de detecção foram altas, mas acompanhadas de 25\% a 76\% de falsos positivos nos fluxos benignos da própria captura, o que mostra que o tráfego benigno de dispositivos não vistos também é difícil de classificar. Na média das seis capturas, essa taxa de falsos positivos foi de 6,0\% no SVM, 7,3\% na CNN, 9,8\% no RF e 17,8\% na AD. A subseção seguinte investiga a causa da diferença de generalização entre as árvores e os demais modelos.
 
 % ---------------------------------------------------------------------
 \subsection{Efeito da representação das portas}
 \label{sec:res-portas}
 
-A \autoref{fig:portas} mostra que a mudança apenas na representação das portas produziu efeitos opostos nos dois grupos de modelos. Sem as portas, RF e AD perderam desempenho no protocolo convencional: o F1-macro caiu para 0,83 na tarefa binária e para cerca de 0,46 na multiclasse, e cerca de um em cada quatro fluxos benignos passou a ser classificado como ataque. Em compensação, a taxa de detecção no LOSO aumentou muito, de 46\% para 84\% no RF e de 34\% para 92\% na AD. Com isso, a AD sem portas alcançou o maior F1-macro médio no LOSO (0,85) entre todos os modelos avaliados. O tráfego do Okiru (captura 36-1), que nenhum modelo original detectava, passou a ser identificado em 96\% dos fluxos pelas duas árvores sem portas (\autoref{tab:portascap}), e a AD sem portas detectou também 100\% da captura 8-1 e 98\% da 34-1, contra 0\% e 25\% originalmente.
+A \autoref{fig:portas} mostra que a mudança apenas na representação das portas produziu efeitos opostos nos dois grupos de modelos. Sem as portas, RF e AD perderam desempenho no protocolo convencional: o F1-macro caiu para 0,83 na tarefa binária e para cerca de 0,46 na multiclasse, e, na tarefa multiclasse, cerca de um em cada quatro fluxos benignos passou a ser classificado como ataque. Em compensação, a taxa de detecção no LOSO aumentou muito, de 46\% para 84\% no RF e de 34\% para 92\% na AD. Com isso, a AD sem portas alcançou o maior F1-macro médio no LOSO (0,85) entre todos os modelos avaliados. O tráfego do Okiru (captura 36-1), que nenhum modelo original detectava, passou a ser identificado em 96\% dos fluxos pelas duas árvores sem portas (\autoref{tab:portascap}), e a AD sem portas detectou também 100\% da captura 8-1 e 98\% da 34-1, contra 0\% e 25\% originalmente.
 
 \begin{figure}[htbp]
 \centering
@@ -622,9 +620,9 @@ Na CNN, ocorreu o inverso. Com as portas codificadas como categorias, o F1-macro
 
 \textbf{Especialização e generalização.} Os resultados mostram que não há um algoritmo superior em todas as situações, mas um equilíbrio entre especialização e generalização, que depende da forma como os atributos são representados. Com as portas como valores numéricos, as árvores isolam portas exatas e passam a reconhecer cada malware por uma espécie de assinatura: o F1-macro passa de 0,99 quando a captura já foi vista no treino, mas cai para menos de 0,5 em capturas não vistas. SVM e CNN, que recebem a porta como um valor numérico padronizado, não conseguem explorar essa assinatura. Isso lhes custa desempenho no protocolo convencional, mas os obriga a aprender o comportamento da conexão (estado, histórico, pacotes e duração), que se mantém mais parecido de uma captura para outra. O experimento das portas confirma esse mecanismo nos dois sentidos: retirar a assinatura das árvores as torna mais generalistas, e oferecê-la à CNN a torna mais especialista. Esse comportamento ilustra um problema apontado por \citet{arp2022dos}: a porta é um atributo legítimo, mas, no IoT-23, está fortemente ligada à captura de onde o fluxo veio, e não apenas ao tipo de ataque.
 
-\textbf{Comparação com o trabalho de base.} No protocolo convencional, os resultados concordam com \citet{souza2024avaliacao}, em que o RF também obteve a maior acurácia e o SVM, o menor F1-Score. As acurácias aqui obtidas para as árvores são maiores, possivelmente pela seleção de capturas e pelo pré-processamento. Ressalta-se que o trabalho de base utilizou os endereços IP como atributos, convertidos em números, e não descreve nenhum tratamento da repetição de fluxos; ambos são fontes potenciais de vazamento de informação \citep{kapoor2023leakage}. Neste trabalho, a repetição de fluxos teve pouco efeito sobre o F1 (\autoref{sec:res-dedup}), mas os endereços IP identificam diretamente os dispositivos de cada captura e podem ter efeito maior. O trabalho de base também não informa o tipo de média de suas métricas, o que dificulta a comparação direta do F1. Por fim, os autores deixaram como trabalho futuro avaliar o desempenho diante de malwares não presentes no conjunto de dados, e os resultados do LOSO indicam que essa resposta é menos favorável do que sugerem as acurácias próximas de 100\%.
+\textbf{Comparação com o trabalho de base.} No protocolo convencional, os resultados concordam com \citet{souza2024avaliacao}, em que os modelos baseados em árvores também obtiveram as maiores acurácias e o SVM, o menor F1-Score, como ocorreu aqui na tarefa binária. As acurácias aqui obtidas para as árvores são maiores, possivelmente pela seleção de capturas e pelo pré-processamento. Ressalta-se que o trabalho de base utilizou os endereços IP como atributos, convertidos em números, e não descreve nenhum tratamento da repetição de fluxos; ambos são fontes potenciais de vazamento de informação \citep{kapoor2023leakage}. Neste trabalho, a repetição de fluxos teve pouco efeito sobre o F1 (\autoref{sec:res-dedup}), mas os endereços IP identificam diretamente os dispositivos de cada captura e podem ter efeito maior. O trabalho de base também não informa o tipo de média de suas métricas, o que dificulta a comparação direta do F1. Por fim, os autores deixaram como trabalho futuro avaliar o desempenho diante de malwares não presentes no conjunto de dados, e os resultados do LOSO indicam que essa resposta é menos favorável do que sugerem as acurácias próximas de 100\%.
 
-\textbf{Implicações práticas.} Para um sistema de detecção de intrusão em ambiente IoT, a escolha do modelo depende do objetivo. Para reconhecer ataques semelhantes aos já conhecidos, com custo mínimo, a AD é a opção mais adequada: tem o melhor desempenho e a menor latência entre os modelos avaliados, o que favorece seu uso em equipamentos com poucos recursos. Para tráfego de malwares nunca vistos, nenhum modelo foi suficiente sozinho. Mesmo a melhor configuração deixou de detectar parte relevante do tráfego malicioso em algumas capturas, e a AD sem portas, a mais generalista, classificaria como ataque cerca de um em cada quatro fluxos benignos no protocolo convencional. Isso sugere combinar modelos especialistas e generalistas, ou combinar a classificação supervisionada com a detecção por anomalia, que aprende o comportamento normal da rede e sinaliza desvios. Em resposta à questão que motiva este trabalho, os algoritmos avaliados têm bom desempenho no tráfego IoT, mas esse desempenho depende de cuidados metodológicos: tratar a repetição de fluxos, avaliar os modelos também em capturas não vistas e escolher com atenção a representação dos atributos.
+\textbf{Implicações práticas.} Para um sistema de detecção de intrusão em ambiente IoT, a escolha do modelo depende do objetivo. Para reconhecer ataques semelhantes aos já conhecidos, com custo mínimo, a AD é a opção mais adequada: tem o melhor desempenho e o menor tempo de inferência entre os modelos avaliados, o que favorece seu uso em equipamentos com poucos recursos. Para tráfego de malwares nunca vistos, nenhum modelo foi suficiente sozinho. Mesmo a melhor configuração deixou de detectar parte relevante do tráfego malicioso em algumas capturas, e a AD sem portas, a mais generalista, classificaria como ataque cerca de um em cada quatro fluxos benignos na tarefa multiclasse do protocolo convencional. Isso sugere combinar modelos especialistas e generalistas, ou combinar a classificação supervisionada com a detecção por anomalia, que aprende o comportamento normal da rede e sinaliza desvios. Em resposta à questão que motiva este trabalho, os algoritmos avaliados têm bom desempenho no tráfego IoT, mas esse desempenho depende de cuidados metodológicos: tratar a repetição de fluxos, avaliar os modelos também em capturas não vistas e escolher com atenção a representação dos atributos.
 
 \textbf{Limitações.} Os resultados foram obtidos em um único conjunto de dados, com capturas de 2018 e 2019, e com apenas seis capturas maliciosas no LOSO, entre as quais o desempenho variou bastante. Por isso, as conclusões sobre generalização devem ser vistas como tendências, e não como estimativas precisas. No SVM, os hiperparâmetros escolhidos ficaram no limite da grade de busca, e um ajuste mais amplo poderia melhorar seu desempenho. Para a CNN, a busca de hiperparâmetros, o LOSO e o experimento das portas usaram uma única semente, e o SVM não foi incluído no experimento das portas por seu custo computacional. Por fim, as categorias de \texttt{history} e a codificação \textit{one-hot} foram definidas antes da divisão em treino e teste, o que introduz um vazamento pequeno, restrito à lista de categorias existentes.
 
