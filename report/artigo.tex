@@ -78,9 +78,9 @@ Botnets; Cibersegurança; Classificação de Tráfego; Generalização; Represen
 \section{Introdução}
 \label{sec:introducao}
 
-A Internet das Coisas (\textit{Internet of Things}, IoT) conecta à rede objetos do dia a dia, como câmeras, lâmpadas, assistentes de voz e sensores industriais. Ao final de 2024, havia cerca de 18,5 bilhões de dispositivos IoT conectados no mundo, e a estimativa é de que esse número chegue a 39 bilhões em 2030 \citep{iotanalytics2025}. Esse crescimento alcança setores críticos, como saúde, indústria e cidades inteligentes, mas não tem sido acompanhado por um nível equivalente de segurança. Muitos dispositivos chegam ao usuário com senhas padrão e serviços de acesso remoto habilitados, o que permite que atacantes os infectem em grande escala e os reúnam em \textit{botnets}, isto é, redes de dispositivos comprometidos, controladas remotamente e usadas para lançar ataques. O caso mais conhecido é o da \textit{botnet} Mirai, que, em 2016, infectou centenas de milhares de câmeras e roteadores e os utilizou em alguns dos maiores ataques de negação de serviço distribuído (DDoS) registrados até então \citep{kolias2017ddos}. O problema ainda persiste, em 2025, a \textit{botnet} Aisuru, formada por cerca de 500 mil dispositivos comprometidos, como roteadores e câmeras, lançou um ataque DDoS que atingiu 29,7 terabits por segundo, o maior registrado até aquele momento \citep{cloudflare2025aisuru}.
+A Internet das Coisas (\textit{Internet of Things}, IoT) conecta à rede objetos do dia a dia, como câmeras, lâmpadas, assistentes de voz e sensores industriais. Ao final de 2024, havia cerca de 18,5 bilhões de dispositivos IoT conectados no mundo, e a estimativa é de que esse número chegue a 39 bilhões em 2030 \citep{iotanalytics2025}. Esse crescimento alcança setores críticos, como saúde, indústria e cidades inteligentes, mas não tem sido acompanhado por um nível equivalente de segurança. Muitos dispositivos chegam ao usuário com senhas padrão e serviços de acesso remoto habilitados, o que permite que atacantes os infectem em grande escala e os reúnam em \textit{botnets}, isto é, redes de dispositivos comprometidos, controladas remotamente e usadas para lançar ataques. Um dos casos mais conhecidos é o da \textit{botnet} Mirai, que, em 2016, infectou centenas de milhares de câmeras e roteadores e os utilizou em alguns dos maiores ataques de negação de serviço distribuído (DDoS) registrados até então \citep{kolias2017ddos}. O problema ainda persiste, em 2025, a \textit{botnet} Aisuru, formada por cerca de 500 mil dispositivos comprometidos, como roteadores e câmeras, lançou um ataque DDoS que atingiu 29,7 terabits por segundo, o maior registrado até aquele momento \citep{cloudflare2025aisuru}.
 
-Além disso, esses dispositivos costumam ter recursos computacionais limitados e utilizar protocolos historicamente pouco seguros, como o Telnet. Essas características tornam insuficientes as soluções baseadas em regras fixas e em assinaturas, isto é, em padrões de ataques já conhecidos, projetadas para redes convencionais \citep{alfahaid2025survey}. Nesse cenário, o Aprendizado de Máquina (\textit{Machine Learning}, ML) surge como alternativa promissora, capaz de aprender a distinguir o tráfego benigno do malicioso a partir de exemplos, com resultados expressivos reportados na literatura nacional \citep{bochie2020deteccao,souza2024avaliacao}.
+Além disso, esses dispositivos costumam ter recursos computacionais limitados e utilizar protocolos historicamente pouco seguros, como o Telnet, que transmite os dados sem criptografia e foi o principal meio de propagação da Mirai \citep{kolias2017ddos}. Essas características tornam insuficientes as soluções baseadas em regras fixas e em assinaturas, isto é, em padrões de ataques já conhecidos, projetadas para redes convencionais \citep{alfahaid2025survey}. Nesse cenário, o Aprendizado de Máquina (\textit{Machine Learning}, ML) surge como alternativa promissora, capaz de aprender a distinguir o tráfego benigno do malicioso a partir de exemplos, com resultados expressivos reportados na literatura nacional \citep{bochie2020deteccao,souza2024avaliacao}.
 
 Ainda assim, questiona-se se algoritmos de ML desenvolvidos e avaliados em redes convencionais mantêm desempenho adequado diante das características específicas do tráfego IoT, ou se demandam adaptações metodológicas. Além disso, muitos estudos relatam acurácias próximas de 100\%, o que levanta outra questão: em que medida esses resultados refletem a real capacidade de detecção dos modelos, especialmente diante de tráfego de dispositivos e malwares que não estavam presentes no treinamento?
 
@@ -108,7 +108,7 @@ A IoT refere-se à interconexão de dispositivos físicos, como sensores, câmer
 As vulnerabilidades dessas redes decorrem de fatores estruturais. Os dispositivos têm processamento e memória reduzidos, o que dificulta o uso de mecanismos de segurança mais pesados, como a criptografia forte. A essas limitações somam-se falhas de configuração e de manutenção: a lista OWASP IoT Top 10, mantida pela fundação OWASP (\textit{Open Worldwide Application Security Project}), aponta como principais falhas dos dispositivos IoT as senhas fracas, previsíveis ou fixas no código, os serviços de rede inseguros expostos à internet e a falta de mecanismos seguros de atualização \citep{owasp2018iot}. Na prática, muitos dispositivos são vendidos com senhas padrão, raramente alteradas pelos usuários, e recebem poucas atualizações de \textit{firmware}, o programa interno que controla o dispositivo, o que mantém falhas conhecidas sem correção por longos períodos \citep{alfahaid2025survey}. Entre os ataques mais recorrentes, destacam-se:
 
 \begin{itemize}
-    \item \textbf{\textit{Botnets} IoT}: dispositivos invadidos passam a ser controlados remotamente pelo atacante e usados em conjunto para lançar ataques. A Mirai é o exemplo mais conhecido \citep{kolias2017ddos};
+    \item \textbf{\textit{Botnets} IoT}: dispositivos invadidos passam a ser controlados remotamente pelo atacante e usados em conjunto para lançar ataques. A Mirai e a Aisuru, citadas na \autoref{sec:introducao}, são exemplos desse tipo de ameaça \citep{kolias2017ddos,cloudflare2025aisuru};
     \item \textbf{DDoS} (\textit{Distributed Denial of Service}): envio de um grande volume de tráfego, a partir de muitos dispositivos ao mesmo tempo, para tornar um serviço indisponível;
     \item \textbf{Varredura de portas} (\textit{port scan}): tentativa de conexão em muitas portas e endereços para descobrir serviços abertos e vulneráveis, frequentemente a etapa inicial de uma infecção;
     \item \textbf{Comando e Controle} (C\&C): comunicação entre os dispositivos infectados e os servidores do atacante, usada para enviar ordens e coordenar as atividades maliciosas.
@@ -122,7 +122,7 @@ Na segurança de redes, o ML é aplicado principalmente na construção de Siste
 \begin{itemize}
     \item \textbf{Árvore de Decisão (AD)}: classifica cada amostra por uma sequência de perguntas sobre os atributos, como ``a porta de destino é 80?'', organizadas em forma de árvore e escolhidas para separar as classes da melhor forma possível \citep{breiman1984cart}. É fácil de interpretar e tem baixo custo computacional;
     \item \textbf{\textit{Random Forest} (RF)}: conjunto de várias árvores de decisão, cada uma treinada com uma parte sorteada das amostras e dos atributos, cuja resposta final é dada por votação \citep{breiman2001random}. Por combinar muitas árvores, é menos sujeito ao sobreajuste, situação em que o modelo decora os exemplos de treino e passa a errar em dados novos;
-    \item \textbf{\textit{Support Vector Machine} (SVM)}: procura a fronteira que separa as classes com a maior distância possível até os exemplos mais próximos de cada lado \citep{cortes1995support}. Com o uso de funções de núcleo (\textit{kernel}), como a RBF, essa fronteira pode ser curva, o que permite separar classes que uma reta ou um plano não separariam. Tem bom desempenho com muitos atributos, mas seu custo de treinamento cresce rapidamente com o volume de dados;
+    \item \textbf{\textit{Support Vector Machine} (SVM)}: imaginando cada amostra como um ponto em um gráfico, o SVM traça a linha que separa os pontos de uma classe dos de outra, deixando a maior folga possível entre essa linha e os pontos mais próximos de cada lado; quanto maior essa folga, mais confiável tende a ser a classificação de amostras novas \citep{cortes1995support}. Quando as classes não podem ser separadas por uma linha reta, o SVM usa uma função de núcleo (\textit{kernel}), como a RBF, que permite traçar fronteiras curvas. Costuma funcionar bem com muitos atributos, mas seu treinamento fica lento à medida que o volume de dados cresce;
     \item \textbf{Rede Neural Convolucional (CNN)}: rede neural que aprende filtros capazes de reconhecer padrões locais, originalmente em imagens \citep{lecun2015deep}. Na detecção de intrusão, os atributos de cada fluxo podem ser reorganizados em uma pequena matriz e tratados como uma imagem.
 \end{itemize}
 
@@ -131,7 +131,7 @@ Em detecção de intrusão, é comum que algumas classes de ataque tenham muito 
 % ---------------------------------------------------------------------
 \subsection{O conjunto de dados IoT-23}
 
-O IoT-23 \citep{garcia2020iot23} é um conjunto de dados público de tráfego de dispositivos IoT reais, capturado entre 2018 e 2019, com capturas de dispositivos infectados por diferentes malwares, como Mirai, Hajime, Hide and Seek e Okiru, e de dispositivos sem infecção. O tráfego é organizado em fluxos, isto é, registros que resumem cada conexão de rede (portas, protocolo, duração, bytes, pacotes e estado da conexão), e cada fluxo é rotulado como benigno ou com o tipo de atividade maliciosa. A composição das capturas usadas neste trabalho é detalhada na \autoref{sec:metodos}.
+O IoT-23 \citep{garcia2020iot23} é um conjunto de dados público de tráfego de dispositivos IoT reais, capturado entre 2018 e 2019 e organizado em fluxos, isto é, registros que resumem cada conexão de rede (portas, protocolo, duração, bytes, pacotes e estado da conexão). Suas capturas e as utilizadas neste trabalho são detalhadas na \autoref{sec:cenarios}.
 
 A distribuição das classes é extremamente desbalanceada: varredura de portas, Okiru e DDoS somam centenas de milhões de fluxos, enquanto outras classes têm apenas alguns milhares. Embora conjuntos mais recentes, como o CIC-IoT2023 \citep{neto2023ciciot2023}, contemplem um número maior de tipos de ataque, o IoT-23 continua amplamente utilizado como referência e possui um trabalho de base direto na literatura nacional \citep{souza2024avaliacao}, o que justifica sua adoção.
 
@@ -139,7 +139,8 @@ A distribuição das classes é extremamente desbalanceada: varredura de portas,
 \subsection{Métricas e protocolos de avaliação}
 \label{sec:rev-metricas}
 
-O desempenho de um classificador é medido a partir de seus acertos e erros em cada classe \citep{sokolova2009systematic}. Para uma classe, os verdadeiros positivos ($VP$) são as amostras dessa classe classificadas corretamente; os falsos positivos ($FP$), as amostras de outras classes classificadas erroneamente como dessa classe; e os falsos negativos ($FN$), as amostras dessa classe classificadas como de outra. A partir dessas contagens, calculam-se:
+O desempenho de um classificador é medido contando seus acertos e erros em cada classe \citep{sokolova2009systematic}. Tomando como exemplo a classe maliciosa, os verdadeiros positivos ($VP$) são os fluxos maliciosos que o modelo identificou como maliciosos; os falsos positivos ($FP$), os fluxos benignos que o modelo classificou, por engano, como maliciosos, ou seja, os alarmes falsos; e os falsos negativos ($FN$), os fluxos maliciosos que o modelo deixou passar como benignos. A mesma lógica vale para qualquer outra classe. A partir dessas contagens, calculam-se:
+
 \begin{equation}
 \text{Precisão} = \frac{VP}{VP+FP}, \qquad \text{Recall} = \frac{VP}{VP+FN},
 \end{equation}
@@ -205,6 +206,12 @@ As subseções a seguir detalham cada uma dessas etapas: a \autoref{sec:ferramen
 
 Os experimentos foram implementados na linguagem Python, em um \textit{notebook} executado no Google Colab. Um \textit{notebook} é um documento interativo que reúne, em um mesmo arquivo, o código, os resultados de sua execução e textos explicativos. O Colab é um serviço do Google que executa código em servidores na nuvem e oferece acesso a uma GPU (placa gráfica) NVIDIA T4, usada para acelerar o treinamento da CNN. Os dados e os modelos treinados foram armazenados no Google Drive. A \autoref{tab:ferramentas} resume as bibliotecas utilizadas e a finalidade de cada uma.
 
+% ---------------------------------------------------------------------
+\subsection{Seleção dos cenários}
+\label{sec:cenarios}
+
+O IoT-23 \citep{garcia2020iot23}, publicado pelo Stratosphere Laboratory da Universidade Técnica Tcheca, reúne 23 capturas de tráfego de rede de dispositivos IoT reais: 20 de dispositivos infectados por diferentes malwares e 3 de dispositivos sem infecção. Os fluxos foram gerados pela ferramenta Zeek, e cada um é rotulado como benigno ou com o tipo de ataque a que pertence. Neste trabalho, foram utilizados esses registros (\texttt{conn.log.labeled}) de nove capturas, apresentadas na \autoref{tab:cenarios}: seis cenários maliciosos, que contemplam as classes de ataque mais frequentes no conjunto (varredura de portas, Okiru e DDoS), além das classes de comando e controle e de ataque direto, e as três capturas benignas, obtidas de dispositivos reais sem infecção, instalados pelos pesquisadores em um ambiente de \textit{honeypot}, isto é, um ambiente controlado, exposto à internet e monitorado para registrar o tráfego. As capturas maliciosas também contêm tráfego benigno, gerado pelos próprios dispositivos infectados. Na captura 36-1, foram descartados os fluxos com o rótulo residual \textit{Okiru-Attack}. No total, foram reunidos 21.223.743 fluxos. Ao longo do texto, a classe \textit{PartOfAHorizontalPortScan}, que corresponde à varredura de portas, é referida como \textit{portscan}.
+
 \begin{table}[htbp]
 \centering
 \caption{Ferramentas e bibliotecas utilizadas (quando há duas versões, a primeira refere-se à primeira ferramenta da linha).}
@@ -225,12 +232,6 @@ Matplotlib e Seaborn & 3.10 / 0.13 & gráficos e figuras \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-% ---------------------------------------------------------------------
-\subsection{Seleção dos cenários}
-\label{sec:cenarios}
-
-O IoT-23 \citep{garcia2020iot23}, publicado pelo Stratosphere Laboratory da Universidade Técnica Tcheca, reúne 23 capturas de tráfego de rede de dispositivos IoT reais: 20 de dispositivos infectados por diferentes malwares e 3 de dispositivos sem infecção. O tráfego de cada captura é resumido em fluxos, isto é, registros de conexão gerados pela ferramenta Zeek, e cada fluxo é rotulado como benigno ou com o tipo de ataque a que pertence. Neste trabalho, foram utilizados esses registros (\texttt{conn.log.labeled}) de nove capturas, apresentadas na \autoref{tab:cenarios}: seis cenários maliciosos, que contemplam as classes de ataque mais frequentes no conjunto (varredura de portas, Okiru e DDoS), além das classes de comando e controle e de ataque direto, e as três capturas benignas, obtidas de dispositivos reais sem infecção, instalados pelos pesquisadores em um ambiente de \textit{honeypot}, isto é, um ambiente controlado, exposto à internet e monitorado para registrar o tráfego. As capturas maliciosas também contêm tráfego benigno, gerado pelos próprios dispositivos infectados. Na captura 36-1, foram descartados os fluxos com o rótulo residual \textit{Okiru-Attack}. No total, foram reunidos 21.223.743 fluxos. Ao longo do texto, a classe \textit{PartOfAHorizontalPortScan} é referida como \textit{portscan}.
 
 \begin{table}[htbp]
 \centering
@@ -262,7 +263,7 @@ Já na leitura dos registros, foram descartados os atributos que identificam a c
 \subsection{Deduplicação e amostragem}
 \label{sec:dedup}
 
-A análise exploratória revelou que o IoT-23 apresenta um grau extremo de repetição. Como mostra a \autoref{tab:dedup}, os 13,6 milhões de fluxos da classe Okiru correspondem a apenas 621 combinações distintas de atributos, e os 14.394 fluxos de DDoS, a apenas 224. Se o conjunto for dividido em treino e teste sem esse tratamento, um mesmo fluxo pode ter uma cópia no conjunto de treino e outra no de teste. Nesse caso, o modelo é testado com exemplos que já apareceram no treinamento, como um aluno que recebe na prova as mesmas questões que estudou, e seu desempenho fica superestimado. Esse problema é uma forma de vazamento de informação, termo que designa o uso, no treinamento, de informações que não estariam disponíveis em uma situação real \citep{kapoor2023leakage}.
+A análise exploratória revelou que o IoT-23 apresenta um grau extremo de repetição. Como mostra a \autoref{tab:dedup}, os 13,6 milhões de fluxos da classe Okiru correspondem a apenas 621 combinações distintas de atributos, e os 14.394 fluxos de DDoS, a apenas 224. Se o conjunto for dividido em treino e teste sem esse tratamento, um mesmo fluxo pode ter uma cópia no conjunto de treino e outra no de teste. Nesse caso, o modelo é testado com exemplos que já apareceram no treinamento, e seu desempenho fica superestimado. Esse problema é uma forma de vazamento de informação, termo que designa o uso, no treinamento, de informações que não estariam disponíveis em uma situação real \citep{kapoor2023leakage}.
 
 \begin{table}[htbp]
 \centering
@@ -294,7 +295,7 @@ Os atributos \texttt{local\_orig} e \texttt{local\_resp}, vazios em todos os flu
 
 Na análise exploratória, verificou-se que os atributos \texttt{orig\_ip\_bytes} e \texttt{resp\_ip\_bytes} acompanham quase exatamente os valores de \texttt{orig\_bytes} e \texttt{resp\_bytes}: ambos medem a quantidade de dados trocados na conexão, e a única diferença é que os primeiros incluem os cabeçalhos IP na contagem. Por repetirem a mesma informação, os atributos \texttt{*\_ip\_bytes} foram removidos. As categorias de \texttt{history} com menos de 500 ocorrências foram agrupadas, e os atributos \texttt{proto}, \texttt{service}, \texttt{conn\_state} e \texttt{history} foram codificados por \textit{one-hot}, técnica que transforma cada categoria em uma coluna própria, com valor 1 quando o fluxo pertence àquela categoria e 0 caso contrário. Ao final, cada fluxo passou a ser descrito por 42 atributos. As portas de origem e destino foram mantidas como atributos numéricos, como no trabalho de base \citep{souza2024avaliacao}; o efeito dessa escolha é investigado na \autoref{sec:res-portas}.
 
-Como o pré-processamento torna idênticos alguns fluxos originalmente distintos, a deduplicação foi repetida sobre o vetor final de atributos, resultando em 176.572 amostras. A ausência de amostras repetidas entre treino e teste foi verificada calculando-se, para cada amostra, um \textit{hash}, isto é, um código numérico que só se repete quando os valores de todos os atributos são idênticos, e comparando-se os códigos dos dois conjuntos.
+Como o pré-processamento torna idênticos alguns fluxos originalmente distintos, a deduplicação foi repetida sobre o vetor final de atributos, resultando em 176.572 amostras. Deste ponto em diante, o termo \textit{amostra} designa um fluxo já convertido no vetor de 42 atributos usado pelos modelos. A ausência de amostras repetidas entre treino e teste foi verificada calculando-se, para cada amostra, um \textit{hash}, isto é, um código numérico que só se repete quando os valores de todos os atributos são idênticos, e comparando-se os códigos dos dois conjuntos.
 
 % ---------------------------------------------------------------------
 \subsection{Divisão, normalização e balanceamento}
@@ -308,11 +309,15 @@ O conjunto é fortemente desbalanceado: no treino multiclasse, a classe benigna 
 \subsection{Modelos e ajuste de hiperparâmetros}
 \label{sec:modelos}
 
-Como a CNN foi criada para processar imagens, cada fluxo, descrito por 42 atributos, foi reorganizado em uma pequena matriz de $6 \times 7$ valores, tratada pela rede como uma imagem. A rede tem duas camadas convolucionais, que extraem padrões de atributos vizinhos na matriz, uma camada de redução (\textit{max pooling}), uma camada densa com \textit{dropout}, técnica que desliga neurônios aleatoriamente durante o treinamento para evitar que a rede apenas memorize os exemplos, e uma camada de saída (\textit{softmax}), que indica a probabilidade de cada classe. O treinamento de uma rede neural é feito em épocas, isto é, passagens completas por todos os exemplos de treino, ao longo das quais os pesos da rede são ajustados aos poucos para reduzir o erro. Utilizou-se o otimizador Adam, que define como esses ajustes são feitos, com no máximo 150 épocas e interrupção automática quando o erro na validação deixava de diminuir por 10 épocas seguidas (\textit{early stopping}). No SVM, utilizou-se o núcleo RBF, que permite separar classes que não podem ser divididas por uma simples reta ou plano.
+A CNN foi projetada para processar imagens. Por isso, cada fluxo, descrito por 42 atributos, foi reorganizado em uma pequena matriz de $6 \times 7$ valores, tratada pela rede como uma imagem. A rede tem duas camadas convolucionais, que extraem padrões de atributos vizinhos na matriz, uma camada de redução (\textit{max pooling}), uma camada densa com \textit{dropout}, técnica que desliga neurônios aleatoriamente durante o treinamento para evitar que a rede apenas memorize os exemplos, e uma camada de saída (\textit{softmax}), que indica a probabilidade de cada classe.
 
-Várias etapas do trabalho envolvem sorteios feitos pelo computador, como a divisão entre treino e teste, a amostragem dos fluxos, a escolha dos exemplos usados por cada árvore do RF e os pesos iniciais da CNN. Para que os resultados possam ser reproduzidos, esses sorteios foram controlados por uma semente aleatória, um número inicial que faz o computador repetir sempre a mesma sequência de sorteios. Neste trabalho, usou-se o valor 42, escolhido de forma arbitrária. A exceção são as cinco execuções da CNN descritas na \autoref{sec:avaliacao}, feitas com sementes diferentes justamente para medir o quanto o resultado varia de um sorteio para outro.
+Uma rede neural é treinada em épocas, isto é, passagens completas por todos os exemplos de treino, durante as quais seus pesos são ajustados aos poucos para reduzir o erro. Foram usados o otimizador Adam, que define como esses ajustes são feitos, e no máximo 150 épocas, com interrupção automática quando o erro na validação deixava de diminuir por 10 épocas seguidas (\textit{early stopping}). No SVM, utilizou-se o núcleo RBF, que permite fronteiras curvas entre as classes.
 
-Os hiperparâmetros são configurações definidas antes do treinamento, como o número de árvores do RF ou a profundidade máxima da AD, e não aprendidas a partir dos dados. Seu ajuste utilizou o F1-macro como critério, sem uso do conjunto de teste. Para RF, AD e SVM, foi feita uma busca em grade (\textit{Grid Search}), que testa todas as combinações de uma lista de valores, avaliando cada combinação por validação cruzada de 5 \textit{folds}: o treino é dividido em cinco partes, o modelo é treinado cinco vezes, a cada vez avaliado em uma parte diferente e treinado nas demais, e usa-se a média dos cinco resultados. No caso do SVM, devido ao maior custo de treinamento, a busca foi realizada em uma subamostra estratificada de cerca de 20 mil amostras, na qual a classe benigna foi reduzida; por isso, o F1-macro foi calculado com pesos que restituem a proporção real das classes no treino. Para a CNN, cujo treinamento é mais demorado, foram avaliadas apenas oito combinações sorteadas entre as possíveis (\textit{Random Search}), usando 20\% do treino como validação. A \autoref{tab:hiper} apresenta os hiperparâmetros ajustados, o que cada um controla e os valores testados e selecionados. Os valores escolhidos para o SVM ficaram no limite superior da grade, de modo que o melhor ajuste pode estar além da região explorada, o que constitui uma limitação deste trabalho.
+Várias etapas do trabalho envolvem sorteios feitos pelo computador, como a divisão entre treino e teste, a amostragem dos fluxos, a escolha dos exemplos usados por cada árvore do RF e os pesos iniciais da CNN. Para que os resultados possam ser reproduzidos, esses sorteios foram controlados por uma semente aleatória, um número inicial que faz o computador repetir sempre a mesma sequência de sorteios. Neste trabalho, usou-se o valor 42; o valor em si não tem significado especial, e o que importa é mantê-lo fixo para que os resultados possam ser repetidos. A exceção são as cinco execuções da CNN descritas na \autoref{sec:avaliacao}, feitas com sementes diferentes justamente para medir o quanto o resultado varia de um sorteio para outro.
+
+Os hiperparâmetros são configurações definidas antes do treinamento, como o número de árvores do RF, e não aprendidas a partir dos dados. Eles foram ajustados sem usar o conjunto de teste, escolhendo-se os valores com o maior F1-macro. Para RF, AD e SVM, usou-se a busca em grade (\textit{Grid Search}), que testa todas as combinações de uma lista de valores. Cada combinação foi avaliada por validação cruzada de 5 \textit{folds}: o treino é dividido em cinco partes, e o modelo é treinado cinco vezes, a cada vez avaliado em uma parte diferente, usando-se a média dos cinco resultados.
+
+Como o treinamento do SVM é lento, sua busca foi feita em uma parte menor do treino, com cerca de 20 mil amostras e menos fluxos benignos, e o F1-macro foi corrigido para refletir a proporção real das classes. Para a CNN, também mais demorada, foram testadas apenas oito combinações sorteadas entre as possíveis (\textit{Random Search}), usando 20\% do treino como validação. A \autoref{tab:hiper} mostra os hiperparâmetros ajustados, o que cada um controla e os valores testados e escolhidos. No SVM, os valores escolhidos ficaram no limite superior da grade, de modo que o melhor ajuste pode estar além dos valores testados, o que é uma limitação deste trabalho.
 
 \begin{table*}[t]
 \centering
@@ -348,13 +353,13 @@ CNN & Filtros por camada         & nº de padrões que cada camada aprende & 16/
 \subsection{Protocolo de avaliação}
 \label{sec:avaliacao}
 
-Os modelos finais foram avaliados no conjunto de teste pela acurácia e pela precisão, \textit{recall} e F1-Score em média macro, sendo o \textbf{F1-macro} o critério principal, e pelo tempo de inferência por amostra, medido em CPU. A estabilidade dos resultados foi verificada por validação cruzada de 5 \textit{folds} no treino, para RF, AD e SVM, e, para a CNN, por cinco execuções com as sementes 42, 7, 123, 2024 e 31415; nas análises seguintes, utilizou-se a execução da CNN com F1 mediano. A importância de cada atributo foi estimada pelo próprio RF multiclasse, a partir do quanto as divisões feitas com aquele atributo ajudam a separar as classes nas árvores (redução média de impureza, MDI).
+Os modelos finais foram avaliados no conjunto de teste pela acurácia e pela precisão, \textit{recall} e F1-Score em média macro, sendo o \textbf{F1-macro} o critério principal, e pelo tempo de inferência por amostra, medido em CPU. A estabilidade dos resultados foi verificada por validação cruzada de 5 \textit{folds} no treino, para RF, AD e SVM, e, para a CNN, por cinco execuções com sementes diferentes (42, 7, 123, 2024 e 31415); nas análises seguintes, utilizou-se a execução da CNN com F1 mediano. A importância de cada atributo foi estimada pelo próprio RF multiclasse, a partir do quanto as divisões feitas com aquele atributo ajudam a separar as classes nas árvores (redução média de impureza, MDI).
 
 As diferenças entre os modelos foram avaliadas pelo teste de McNemar exato (\autoref{sec:rev-metricas}), aplicado par a par sobre as predições no conjunto de teste, nas duas tarefas. O teste considera apenas se cada modelo acertou ou errou cada amostra, o que permite aplicá-lo da mesma forma às tarefas binária e multiclasse. Como cada tarefa envolve seis comparações, aumenta a chance de alguma diferença parecer significativa apenas por acaso. Para compensar, adotou-se a correção de Bonferroni \citep{dunn1961multiple}, recomendada por \citet{salzberg1997comparing} na comparação entre classificadores, que torna o critério mais exigente: em vez do limite usual de 5\%, uma diferença só foi considerada significativa quando o teste indicou menos de 0,8\% de chance de ela ser fruto do acaso (5\% divididos pelas seis comparações).
 
 Além da avaliação convencional, foram realizados três experimentos complementares:
 \begin{itemize}
-    \item \textbf{Ablação da deduplicação}: experimento em que uma etapa do método é retirada para medir sua contribuição. Aqui, o RF binário foi treinado também sem a segunda deduplicação e sem nenhuma deduplicação, etapa não descrita no trabalho de base, para medir o efeito da repetição dos fluxos. Nesta última condição, o teto de 20.000 fluxos passou a valer também para a classe benigna;
+    \item \textbf{Ablação da deduplicação}: experimento em que uma etapa do método é retirada para medir sua contribuição. Aqui, o RF binário foi treinado também sem a segunda deduplicação e sem nenhuma deduplicação, etapa não descrita no trabalho de base, para medir o efeito da repetição dos fluxos. Nesta última condição, o teto de 20.000 fluxos por classe foi aplicado também à classe benigna, que, sem a deduplicação, teria mais de 500 mil fluxos, para limitar o custo computacional; com isso, a proporção entre as classes muda, o que é considerado na análise dos resultados (\autoref{sec:res-dedup});
     \item \textbf{\textit{Leave-one-scenario-out} (LOSO)}: cada uma das seis capturas maliciosas foi, por vez, retirada do treino e usada como teste, junto com 30\% dos fluxos de \textit{honeypot}, sempre os mesmos; os 70\% restantes integraram o treino. Assim, cada rodada simula a chegada de tráfego de uma captura nunca vista, com outro malware, outro dispositivo e outra rede. Em três rodadas (3-1, 34-1 e 36-1), o teste contém classes de ataque ausentes do treino; nas demais, a classe já é conhecida, mas provém de outra captura. Os modelos foram retreinados com os mesmos hiperparâmetros, e mediu-se a \textbf{taxa de detecção}, ou seja, a porcentagem dos fluxos maliciosos da captura classificados como maliciosos, e a taxa de falsos positivos, isto é, a porcentagem dos fluxos benignos da própria captura classificados como maliciosos;
     \item \textbf{Representação das portas}: motivado pela importância das portas no RF, avaliou-se o efeito de removê-las dos atributos, nos modelos de árvore, e de codificá-las como categorias, na CNN. Nesse caso, cada porta com ao menos 500 ocorrências no treino (15 de destino e 4 de origem) recebeu uma coluna \textit{one-hot}, mais uma categoria ``outras'' por atributo, o que elevou a entrada para 61 atributos, organizados em uma matriz $7 \times 9$, cujas duas posições restantes foram preenchidas com zeros. O SVM não foi incluído neste experimento devido ao custo computacional.
 \end{itemize}
@@ -426,8 +431,7 @@ A \autoref{fig:matrizes} mostra onde estão esses erros, por meio de matrizes de
 \label{fig:matrizes}
 \end{figure*}
 
-Quanto ao balanceamento, o SMOTE não trouxe ganho em relação à ponderação de classes na tarefa binária (F1 de 0,9978 contra 0,9983 no RF e de 0,9984 contra 0,9990 na AD), e a ponderação foi mantida nos modelos finais. O ajuste de hiperparâmetros teve efeito pequeno em RF e AD, que já estavam próximos do limite, mas relevante no SVM, cujo F1-macro passou de 0,92 para 0,96 na tarefa binária e de 0,71 para 0,75 na multiclasse. Na CNN multiclasse, o resultado variou conforme a semente aleatória, que define os pesos iniciais da rede: a execução com semente 42 alcançou F1 de 0,83, enquanto as demais ficaram entre 0,70 e 0,72. Por isso, as comparações usam a execução de resultado intermediário (mediana), e não a melhor (\autoref{tab:ajuste}).
-
+Quanto ao balanceamento, o SMOTE não trouxe ganho em relação à ponderação de classes na tarefa binária (F1 de 0,9978 contra 0,9983 no RF e de 0,9984 contra 0,9990 na AD), e a ponderação foi mantida nos modelos finais. O ajuste de hiperparâmetros teve efeito pequeno em RF e AD, que já estavam próximos do limite, mas relevante no SVM, cujo F1-macro passou de 0,92 para 0,96 na tarefa binária e de 0,71 para 0,75 na multiclasse.
 
 \begin{table}[htbp]
 \centering
@@ -449,6 +453,8 @@ Quanto ao balanceamento, o SMOTE não trouxe ganho em relação à ponderação 
 \bottomrule
 \end{tabular}
 \end{table}
+
+Na CNN multiclasse, o resultado variou conforme a semente aleatória, que define os pesos iniciais da rede: a execução com semente 42 alcançou F1 de 0,83, enquanto as demais ficaram entre 0,70 e 0,72. Por isso, as comparações usam a execução de resultado intermediário (mediana), e não a melhor (\autoref{tab:ajuste}).
 
 % ---------------------------------------------------------------------
 \subsection{Comparação estatística e custo computacional}
@@ -569,33 +575,7 @@ Outros dois casos merecem destaque. Na captura 36-1, nenhum modelo detectou um �
 \subsection{Efeito da representação das portas}
 \label{sec:res-portas}
 
-A \autoref{tab:portas} mostra que a mudança apenas na representação das portas produziu efeitos opostos nos dois grupos de modelos. Sem as portas, RF e AD perderam desempenho no protocolo convencional: o F1-macro caiu para 0,83 na tarefa binária e para cerca de 0,46 na multiclasse, e cerca de um em cada quatro fluxos benignos passou a ser classificado como ataque. Em compensação, a taxa de detecção no LOSO aumentou muito, de 46\% para 84\% no RF e de 34\% para 92\% na AD. Com isso, a AD sem portas alcançou o maior F1-macro médio no LOSO (0,85) entre todos os modelos avaliados. O tráfego do Okiru (captura 36-1), que nenhum modelo original detectava, passou a ser identificado em 96\% dos fluxos pelas duas árvores sem portas (\autoref{tab:portascap}), e a AD sem portas detectou também 100\% da captura 8-1 e 98\% da 34-1, contra 0\% e 25\% originalmente. A \autoref{fig:portas} resume esse efeito.
-
-\begin{table}[htbp]
-\centering
-\caption{Efeito da representação das portas (F1-macro binário no teste convencional e média no LOSO).}
-\label{tab:portas}
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{llrrr}
-\toprule
- & & \textbf{Conven-} & \multicolumn{2}{c}{\textbf{LOSO}} \\
-\cmidrule(lr){4-5}
-\textbf{Modelo} & \textbf{Portas} & \textbf{cional} & \textbf{F1} & \textbf{Detecção} \\
-\midrule
-RF  & numéricas   & 0,998 & 0,465 & 45,6\% \\
-    & removidas   & 0,829 & 0,780 & 83,8\% \\
-\midrule
-AD  & numéricas   & 0,999 & 0,348 & 33,8\% \\
-    & removidas   & 0,828 & \textbf{0,850} & \textbf{91,9\%} \\
-\midrule
-CNN & numéricas   & 0,971 & 0,648 & 67,8\% \\
-    & categóricas & 0,994 & 0,330 & 18,6\% \\
-\midrule
-SVM & numéricas   & 0,955 & 0,654 & 64,7\% \\
-\bottomrule
-\end{tabular}
-\end{table}
+A \autoref{fig:portas} mostra que a mudança apenas na representação das portas produziu efeitos opostos nos dois grupos de modelos. Sem as portas, RF e AD perderam desempenho no protocolo convencional: o F1-macro caiu para 0,83 na tarefa binária e para cerca de 0,46 na multiclasse, e cerca de um em cada quatro fluxos benignos passou a ser classificado como ataque. Em compensação, a taxa de detecção no LOSO aumentou muito, de 46\% para 84\% no RF e de 34\% para 92\% na AD. Com isso, a AD sem portas alcançou o maior F1-macro médio no LOSO (0,85) entre todos os modelos avaliados. O tráfego do Okiru (captura 36-1), que nenhum modelo original detectava, passou a ser identificado em 96\% dos fluxos pelas duas árvores sem portas (\autoref{tab:portascap}), e a AD sem portas detectou também 100\% da captura 8-1 e 98\% da 34-1, contra 0\% e 25\% originalmente.
 
 \begin{figure}[htbp]
 \centering
