@@ -16,6 +16,26 @@
 %%% (código TikZ original em figuras/fluxograma_metodologia_tikz.txt).
 %%%
 
+%%% Permite que figuras/tabelas dividam a coluna com o texto, em vez de ocuparem
+%%% uma coluna inteira sozinhas (evita colunas com grande espaço em branco)
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\bottomfraction}{0.6}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.8}
+\renewcommand{\dbltopfraction}{0.85}
+\renewcommand{\dblfloatpagefraction}{0.8}
+
+%%% Quando uma coluna ou página tem só figuras/tabelas, empilhá-las a partir do topo
+%%% (o padrão do LaTeX as espalha verticalmente, deixando buracos)
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpsep}{12pt plus 2pt}
+\setlength{\@fpbot}{0pt plus 1fil}
+\setlength{\@dblfptop}{0pt}
+\setlength{\@dblfpsep}{12pt plus 2pt}
+\setlength{\@dblfpbot}{0pt plus 1fil}
+\makeatother
+
 %%% Título
 \title{Detecção de Ataques em Redes IoT: Uma Análise Comparativa de Algoritmos de Aprendizado de Máquina no IoT-23}
 
@@ -78,11 +98,11 @@ Botnets; Cibersegurança; Classificação de Tráfego; Generalização; Represen
 \section{Introdução}
 \label{sec:introducao}
 
-A Internet das Coisas (\textit{Internet of Things}, IoT) conecta à rede objetos do dia a dia, como câmeras, lâmpadas, assistentes de voz e sensores industriais. Ao final de 2024, havia cerca de 18,5 bilhões de dispositivos IoT conectados no mundo, e a estimativa é de que esse número chegue a 39 bilhões em 2030 \citep{iotanalytics2025}. Esse crescimento alcança setores críticos, como saúde, indústria e cidades inteligentes, mas não tem sido acompanhado por um nível equivalente de segurança. Muitos dispositivos chegam ao usuário com senhas padrão e serviços de acesso remoto habilitados, o que permite que atacantes os infectem em grande escala e os reúnam em \textit{botnets}, isto é, redes de dispositivos comprometidos, controladas remotamente e usadas para lançar ataques. Um dos casos mais conhecidos é o da \textit{botnet} Mirai, que, em 2016, infectou centenas de milhares de câmeras e roteadores e os utilizou em alguns dos maiores ataques de negação de serviço distribuído (DDoS) registrados até então \citep{kolias2017ddos}. O problema ainda persiste, em 2025, a \textit{botnet} Aisuru, formada por cerca de 500 mil dispositivos comprometidos, como roteadores e câmeras, lançou um ataque DDoS que atingiu 29,7 terabits por segundo, o maior registrado até aquele momento \citep{cloudflare2025aisuru}.
+A Internet das Coisas (\textit{Internet of Things}, IoT) conecta à rede objetos do dia a dia, como câmeras, lâmpadas, assistentes de voz e sensores industriais. Ao final de 2024, havia cerca de 18,5 bilhões de dispositivos IoT conectados no mundo, e a estimativa é de que esse número chegue a 39 bilhões em 2030 \citep{iotanalytics2025}. Esse crescimento alcança setores críticos, como saúde, indústria e cidades inteligentes, mas não tem sido acompanhado por um nível equivalente de segurança \citep{alfahaid2025survey}. Muitos dispositivos chegam ao usuário com senhas padrão e serviços de acesso remoto habilitados \citep{owasp2018iot}, o que permite que atacantes os infectem em grande escala e os reúnam em \textit{botnets}, isto é, redes de dispositivos comprometidos, controladas remotamente e usadas para lançar ataques. Um dos casos mais conhecidos é o da \textit{botnet} Mirai, que, em 2016, infectou centenas de milhares de câmeras e roteadores e os utilizou em alguns dos maiores ataques de negação de serviço distribuído (DDoS) registrados até então \citep{kolias2017ddos}. O problema persiste: em 2025, a \textit{botnet} Aisuru, formada por cerca de 500 mil dispositivos comprometidos, como roteadores e câmeras, lançou um ataque DDoS que atingiu 29,7 terabits por segundo, o maior registrado até aquele momento \citep{cloudflare2025aisuru}.
 
 Além disso, esses dispositivos costumam ter recursos computacionais limitados e utilizar protocolos historicamente pouco seguros, como o Telnet, que transmite os dados sem criptografia e foi o principal meio de propagação da Mirai \citep{kolias2017ddos}. Essas características tornam insuficientes as soluções baseadas em regras fixas e em assinaturas, isto é, em padrões de ataques já conhecidos, projetadas para redes convencionais \citep{alfahaid2025survey}. Nesse cenário, o Aprendizado de Máquina (\textit{Machine Learning}, ML) surge como alternativa promissora, capaz de aprender a distinguir o tráfego benigno do malicioso a partir de exemplos, com resultados expressivos reportados na literatura nacional \citep{bochie2020deteccao,souza2024avaliacao}.
 
-Ainda assim, questiona-se se algoritmos de ML desenvolvidos e avaliados em redes convencionais mantêm desempenho adequado diante das características específicas do tráfego IoT, ou se demandam adaptações metodológicas. Além disso, muitos estudos relatam acurácias próximas de 100\%, o que levanta outra questão: em que medida esses resultados refletem a real capacidade de detecção dos modelos, especialmente diante de tráfego de dispositivos e malwares que não estavam presentes no treinamento?
+Ainda assim, questiona-se se algoritmos de ML desenvolvidos e avaliados em redes convencionais mantêm desempenho adequado diante das características específicas do tráfego IoT, ou se demandam adaptações metodológicas. Além disso, estudos como o de \citet{souza2024avaliacao} relatam acurácias próximas de 100\%, o que levanta outra questão: em que medida esses resultados refletem a real capacidade de detecção dos modelos, especialmente diante de tráfego de dispositivos e malwares que não estavam presentes no treinamento?
 
 Este trabalho avaliou e comparou quatro algoritmos de ML na detecção de ataques em redes IoT: \textit{Random Forest} (RF), Árvore de Decisão (AD), \textit{Support Vector Machine} (SVM) e Rede Neural Convolucional (CNN). Os modelos foram treinados e testados com o conjunto de dados IoT-23 \citep{garcia2020iot23}, em tarefas de classificação binária e multiclasse, e comparados quanto à capacidade de classificação e ao custo computacional, com um teste estatístico para verificar se as diferenças observadas entre eles não se devem ao acaso. Além da comparação convencional, o trabalho avaliou a capacidade dos modelos de detectar tráfego malicioso de capturas que não foram vistas no treinamento e investigou como a forma de representar os atributos influenciou esse comportamento.
 
@@ -105,7 +125,7 @@ Esta seção apresenta os fundamentos que sustentam o trabalho: a arquitetura e 
 
 A IoT refere-se à interconexão de dispositivos físicos, como sensores, câmeras, eletrodomésticos e equipamentos industriais, à internet, permitindo a coleta e a troca automatizada de dados \citep{alfahaid2025survey}. Sua arquitetura é tipicamente descrita em três camadas \citep{mrabet2020survey}: a camada de \textbf{percepção}, formada pelos dispositivos que coletam dados do ambiente físico; a camada de \textbf{rede}, responsável por transmitir esses dados, por tecnologias como Wi-Fi, ZigBee e redes móveis; e a camada de \textbf{aplicação}, que processa os dados e os apresenta ao usuário.
 
-As vulnerabilidades dessas redes decorrem de fatores estruturais. Os dispositivos têm processamento e memória reduzidos, o que dificulta o uso de mecanismos de segurança mais pesados, como a criptografia forte. A essas limitações somam-se falhas de configuração e de manutenção: a lista OWASP IoT Top 10, mantida pela fundação OWASP (\textit{Open Worldwide Application Security Project}), aponta como principais falhas dos dispositivos IoT as senhas fracas, previsíveis ou fixas no código, os serviços de rede inseguros expostos à internet e a falta de mecanismos seguros de atualização \citep{owasp2018iot}. Na prática, muitos dispositivos são vendidos com senhas padrão, raramente alteradas pelos usuários, e recebem poucas atualizações de \textit{firmware}, o programa interno que controla o dispositivo, o que mantém falhas conhecidas sem correção por longos períodos \citep{alfahaid2025survey}. Entre os ataques mais recorrentes, destacam-se:
+As vulnerabilidades dessas redes decorrem de fatores estruturais. Os dispositivos têm processamento e memória reduzidos, o que dificulta o uso de mecanismos de segurança mais pesados, como a criptografia forte \citep{mrabet2020survey}. A essas limitações somam-se falhas de configuração e de manutenção: a lista OWASP IoT Top 10, mantida pela fundação OWASP (\textit{Open Worldwide Application Security Project}), aponta como principais falhas dos dispositivos IoT as senhas fracas, previsíveis ou fixas no código, os serviços de rede inseguros expostos à internet e a falta de mecanismos seguros de atualização \citep{owasp2018iot}. Na prática, muitos dispositivos são vendidos com senhas padrão, raramente alteradas pelos usuários, e recebem poucas atualizações de \textit{firmware}, o programa interno que controla o dispositivo, o que mantém falhas conhecidas sem correção por longos períodos \citep{alfahaid2025survey}. Entre os ataques mais recorrentes, destacam-se:
 
 \begin{itemize}
     \item \textbf{\textit{Botnets} IoT}: dispositivos invadidos passam a ser controlados remotamente pelo atacante e usados em conjunto para lançar ataques. A Mirai e a Aisuru, citadas na \autoref{sec:introducao}, são exemplos desse tipo de ameaça \citep{kolias2017ddos,cloudflare2025aisuru};
@@ -122,25 +142,24 @@ Na segurança de redes, o ML é aplicado principalmente na construção de Siste
 \begin{itemize}
     \item \textbf{Árvore de Decisão (AD)}: classifica cada amostra por uma sequência de perguntas sobre os atributos, como ``a porta de destino é 80?'', organizadas em forma de árvore e escolhidas para separar as classes da melhor forma possível \citep{breiman1984cart}. É fácil de interpretar e tem baixo custo computacional;
     \item \textbf{\textit{Random Forest} (RF)}: conjunto de várias árvores de decisão, cada uma treinada com uma parte sorteada das amostras e dos atributos, cuja resposta final é dada por votação \citep{breiman2001random}. Por combinar muitas árvores, é menos sujeito ao sobreajuste, situação em que o modelo decora os exemplos de treino e passa a errar em dados novos;
-    \item \textbf{\textit{Support Vector Machine} (SVM)}: imaginando cada amostra como um ponto em um gráfico, o SVM traça a linha que separa os pontos de uma classe dos de outra, deixando a maior folga possível entre essa linha e os pontos mais próximos de cada lado; quanto maior essa folga, mais confiável tende a ser a classificação de amostras novas \citep{cortes1995support}. Quando as classes não podem ser separadas por uma linha reta, o SVM usa uma função de núcleo (\textit{kernel}), como a RBF, que permite traçar fronteiras curvas. Costuma funcionar bem com muitos atributos, mas seu treinamento fica lento à medida que o volume de dados cresce;
-    \item \textbf{Rede Neural Convolucional (CNN)}: rede neural que aprende filtros capazes de reconhecer padrões locais, originalmente em imagens \citep{lecun2015deep}. Na detecção de intrusão, os atributos de cada fluxo podem ser reorganizados em uma pequena matriz e tratados como uma imagem.
+    \item \textbf{\textit{Support Vector Machine} (SVM)}: imaginando cada amostra como um ponto em um gráfico, o SVM traça a linha que separa os pontos de uma classe dos de outra, deixando a maior folga possível entre essa linha e os pontos mais próximos de cada lado; quanto maior essa folga, mais confiável tende a ser a classificação de amostras novas \citep{cortes1995support}. Quando as classes não podem ser separadas por uma linha reta, o SVM usa uma função de núcleo (\textit{kernel}), como a RBF (\textit{Radial Basis Function}), que permite traçar fronteiras curvas. Costuma funcionar bem com muitos atributos, mas seu treinamento fica lento à medida que o volume de dados cresce;
+    \item \textbf{Rede Neural Convolucional (CNN)}: rede neural que aprende filtros capazes de reconhecer padrões locais, originalmente em imagens \citep{lecun2015deep}. Na detecção de intrusão, os atributos de cada fluxo podem ser reorganizados em uma pequena matriz e tratados como uma imagem \citep{bochie2020deteccao}.
 \end{itemize}
 
-Em detecção de intrusão, é comum que algumas classes de ataque tenham muito menos exemplos que as demais, e os classificadores tendem a favorecer as classes mais numerosas. Duas estratégias usuais para contornar esse desbalanceamento são a \textbf{ponderação de classes}, que faz o erro em uma classe rara pesar mais no treinamento do que o erro em uma classe numerosa, e o \textbf{SMOTE} \citep{chawla2002smote}, que cria exemplos artificiais das classes raras a partir dos exemplos existentes.
+Em detecção de intrusão, é comum que algumas classes de ataque tenham muito menos exemplos que as demais, e os classificadores tendem a favorecer as classes mais numerosas \citep{chawla2002smote}. Duas estratégias usuais para contornar esse desbalanceamento são a \textbf{ponderação de classes}, que faz o erro em uma classe rara pesar mais no treinamento do que o erro em uma classe numerosa, e o \textbf{SMOTE} \citep{chawla2002smote}, que cria exemplos artificiais das classes raras a partir dos exemplos existentes.
 
 % ---------------------------------------------------------------------
 \subsection{O conjunto de dados IoT-23}
 
 O IoT-23 \citep{garcia2020iot23} é um conjunto de dados público de tráfego de dispositivos IoT reais, capturado entre 2018 e 2019 e organizado em fluxos, isto é, registros que resumem cada conexão de rede (portas, protocolo, duração, bytes, pacotes e estado da conexão). Suas capturas e as utilizadas neste trabalho são detalhadas na \autoref{sec:cenarios}.
 
-A distribuição das classes é extremamente desbalanceada: varredura de portas, Okiru e DDoS somam centenas de milhões de fluxos, enquanto outras classes têm apenas alguns milhares. Embora conjuntos mais recentes, como o CIC-IoT2023 \citep{neto2023ciciot2023}, contemplem um número maior de tipos de ataque, o IoT-23 continua amplamente utilizado como referência e possui um trabalho de base direto na literatura nacional \citep{souza2024avaliacao}, o que justifica sua adoção.
+A distribuição das classes é extremamente desbalanceada: varredura de portas, Okiru e DDoS somam centenas de milhões de fluxos, enquanto outras classes têm apenas alguns milhares \citep{garcia2020iot23}. Embora conjuntos mais recentes, como o CIC-IoT2023 \citep{neto2023ciciot2023}, contemplem um número maior de tipos de ataque, o IoT-23 continua amplamente utilizado como referência e possui um trabalho de base direto na literatura nacional \citep{souza2024avaliacao}, o que justifica sua adoção.
 
 % ---------------------------------------------------------------------
 \subsection{Métricas e protocolos de avaliação}
 \label{sec:rev-metricas}
 
 O desempenho de um classificador é medido contando seus acertos e erros em cada classe \citep{sokolova2009systematic}. Tomando como exemplo a classe maliciosa, os verdadeiros positivos ($VP$) são os fluxos maliciosos que o modelo identificou como maliciosos; os falsos positivos ($FP$), os fluxos benignos que o modelo classificou, por engano, como maliciosos, ou seja, os alarmes falsos; e os falsos negativos ($FN$), os fluxos maliciosos que o modelo deixou passar como benignos. A mesma lógica vale para qualquer outra classe. A partir dessas contagens, calculam-se:
-
 \begin{equation}
 \text{Precisão} = \frac{VP}{VP+FP}, \qquad \text{Recall} = \frac{VP}{VP+FN},
 \end{equation}
@@ -160,24 +179,7 @@ Por fim, o protocolo usual de avaliação, que sorteia o treino e o teste a part
 
 \citet{souza2024avaliacao} avaliaram RF, SVM, AD e CNN no IoT-23, reunindo as capturas em um único arquivo, convertendo os atributos categóricos em números (incluindo os endereços IP) e dividindo os dados aleatoriamente em 70\% para treino e 30\% para teste. O RF obteve a maior acurácia (99,33\%), seguido da AD (97,33\%), do SVM (94\%) e da CNN (92,83\%), e RF e CNN alcançaram o maior F1-Score (0,98). Este é o principal trabalho de base para a presente pesquisa.
 
-\citet{bochie2020deteccao} compararam algoritmos clássicos (\textit{Naïve Bayes}, AD e RF) e redes neurais profundas (MLP, CNN, LSTM e \textit{autoencoders}) em dois conjuntos de dados públicos de tráfego IoT com \textit{botnets}, o Bezerra2018 e o BoT-IoT. As árvores de decisão e os \textit{autoencoders} apresentaram os melhores resultados, e os autores observaram que a forma como o tráfego é organizado, em fluxos ou em pacotes, influencia qual técnica é mais adequada. Em âmbito internacional, \citet{alfahaid2025survey} revisaram as soluções de ML para segurança IoT publicadas entre 2020 e 2024, abrangendo abordagens supervisionadas, não supervisionadas e por reforço, e \citet{rahman2025survey} discutiram as principais abordagens, conjuntos de dados e desafios em aberto dos IDS para IoT. A \autoref{tab:relacionados} sintetiza esses trabalhos.
-
-\begin{table}[htbp]
-\centering
-\caption{Síntese dos trabalhos relacionados.}
-\label{tab:relacionados}
-\small
-\begin{tabular}{>{\raggedright\arraybackslash}p{0.26\columnwidth}>{\raggedright\arraybackslash}p{0.23\columnwidth}>{\raggedright\arraybackslash}p{0.34\columnwidth}}
-\toprule
-\textbf{Trabalho} & \textbf{Dados} & \textbf{Principal resultado} \\
-\midrule
-\citet{souza2024avaliacao}   & IoT-23              & RF com maior acurácia; RF e CNN com maior F1 \\
-\citet{bochie2020deteccao}   & Bezerra2018 e BoT-IoT & AD e \textit{autoencoders} com os melhores resultados \\
-\citet{alfahaid2025survey}   & Revisão             & Tendências de ML em segurança IoT (2020 a 2024) \\
-\citet{rahman2025survey}     & Revisão             & Desafios em aberto de IDS para IoT \\
-\bottomrule
-\end{tabular}
-\end{table}
+\citet{bochie2020deteccao} compararam algoritmos clássicos, entre eles AD e RF, com diferentes redes neurais profundas, entre elas a CNN e os \textit{autoencoders}, redes que aprendem a reconstruir o tráfego normal e tratam como suspeito o que não conseguem reconstruir, em dois conjuntos de dados públicos de tráfego IoT com \textit{botnets}, o Bezerra2018 e o BoT-IoT. As árvores de decisão e os \textit{autoencoders} apresentaram os melhores resultados, e os autores observaram que a forma como o tráfego é organizado, em fluxos ou em pacotes, influencia qual técnica é mais adequada. Em âmbito internacional, \citet{alfahaid2025survey} revisaram as soluções de ML para segurança IoT publicadas entre 2020 e 2024, abrangendo abordagens supervisionadas, não supervisionadas e por reforço, e \citet{rahman2025survey} discutiram as principais abordagens, conjuntos de dados e desafios em aberto dos IDS para IoT.
 
 Observa-se que esses trabalhos avaliam os modelos no protocolo convencional, em que treino e teste são sorteados do mesmo conjunto, e não discutem o efeito da repetição de fluxos nem o desempenho diante de capturas não vistas no treinamento. Este trabalho busca contribuir nessas duas direções, além de comparar os quatro algoritmos sob as mesmas condições experimentais e com teste estatístico das diferenças.
 
@@ -317,8 +319,6 @@ Várias etapas do trabalho envolvem sorteios feitos pelo computador, como a divi
 
 Os hiperparâmetros são configurações definidas antes do treinamento, como o número de árvores do RF, e não aprendidas a partir dos dados. Eles foram ajustados sem usar o conjunto de teste, escolhendo-se os valores com o maior F1-macro. Para RF, AD e SVM, usou-se a busca em grade (\textit{Grid Search}), que testa todas as combinações de uma lista de valores. Cada combinação foi avaliada por validação cruzada de 5 \textit{folds}: o treino é dividido em cinco partes, e o modelo é treinado cinco vezes, a cada vez avaliado em uma parte diferente, usando-se a média dos cinco resultados.
 
-Como o treinamento do SVM é lento, sua busca foi feita em uma parte menor do treino, com cerca de 20 mil amostras e menos fluxos benignos, e o F1-macro foi corrigido para refletir a proporção real das classes. Para a CNN, também mais demorada, foram testadas apenas oito combinações sorteadas entre as possíveis (\textit{Random Search}), usando 20\% do treino como validação. A \autoref{tab:hiper} mostra os hiperparâmetros ajustados, o que cada um controla e os valores testados e escolhidos. No SVM, os valores escolhidos ficaram no limite superior da grade, de modo que o melhor ajuste pode estar além dos valores testados, o que é uma limitação deste trabalho.
-
 \begin{table*}[t]
 \centering
 \caption{Hiperparâmetros ajustados, o que cada um controla, valores testados e valores selecionados. Nos filtros da CNN, 32/64 indica 32 filtros na primeira camada convolucional e 64 na segunda. Quando há dois valores selecionados, o primeiro refere-se à tarefa binária e o segundo, à multiclasse; $\gamma_0 \approx 0{,}061$ é o valor padrão da biblioteca.}
@@ -349,11 +349,13 @@ CNN & Filtros por camada         & nº de padrões que cada camada aprende & 16/
 \end{tabular}
 \end{table*}
 
+Como o treinamento do SVM é lento, sua busca foi feita em uma parte menor do treino, com cerca de 20 mil amostras e menos fluxos benignos, e o F1-macro foi corrigido para refletir a proporção real das classes. Para a CNN, também mais demorada, foram testadas apenas oito combinações sorteadas entre as possíveis (\textit{Random Search}), usando 20\% do treino como validação. A \autoref{tab:hiper} mostra os hiperparâmetros ajustados, o que cada um controla e os valores testados e escolhidos. No SVM, os valores escolhidos ficaram no limite superior da grade, de modo que o melhor ajuste pode estar além dos valores testados, o que é uma limitação deste trabalho.
+
 % ---------------------------------------------------------------------
 \subsection{Protocolo de avaliação}
 \label{sec:avaliacao}
 
-Os modelos finais foram avaliados no conjunto de teste pela acurácia e pela precisão, \textit{recall} e F1-Score em média macro, sendo o \textbf{F1-macro} o critério principal, e pelo tempo de inferência por amostra, medido em CPU. A estabilidade dos resultados foi verificada por validação cruzada de 5 \textit{folds} no treino, para RF, AD e SVM, e, para a CNN, por cinco execuções com sementes diferentes (42, 7, 123, 2024 e 31415); nas análises seguintes, utilizou-se a execução da CNN com F1 mediano. A importância de cada atributo foi estimada pelo próprio RF multiclasse, a partir do quanto as divisões feitas com aquele atributo ajudam a separar as classes nas árvores (redução média de impureza, MDI).
+Os modelos finais foram avaliados no conjunto de teste pela acurácia e pela precisão, \textit{recall} e F1-Score em média macro, sendo o \textbf{F1-macro} o critério principal, e pelo tempo de inferência por amostra, medido no processador (CPU), sem uso da GPU. A estabilidade dos resultados foi verificada por validação cruzada de 5 \textit{folds} no treino, para RF, AD e SVM, e, para a CNN, por cinco execuções com sementes diferentes (42, 7, 123, 2024 e 31415); nas análises seguintes, utilizou-se a execução da CNN com F1 mediano. A importância de cada atributo foi estimada pelo próprio RF multiclasse, a partir do quanto as divisões feitas com aquele atributo ajudam a separar as classes nas árvores (redução média de impureza, MDI).
 
 As diferenças entre os modelos foram avaliadas pelo teste de McNemar exato (\autoref{sec:rev-metricas}), aplicado par a par sobre as predições no conjunto de teste, nas duas tarefas. O teste considera apenas se cada modelo acertou ou errou cada amostra, o que permite aplicá-lo da mesma forma às tarefas binária e multiclasse. Como cada tarefa envolve seis comparações, aumenta a chance de alguma diferença parecer significativa apenas por acaso. Para compensar, adotou-se a correção de Bonferroni \citep{dunn1961multiple}, recomendada por \citet{salzberg1997comparing} na comparação entre classificadores, que torna o critério mais exigente: em vez do limite usual de 5\%, uma diferença só foi considerada significativa quando o teste indicou menos de 0,8\% de chance de ela ser fruto do acaso (5\% divididos pelas seis comparações).
 
@@ -488,7 +490,7 @@ Em custo computacional (\autoref{tab:principal}), a AD é o modelo mais eficient
 
 A importância de atributos indica o quanto cada atributo foi usado pelo RF para separar as classes, e a soma das importâncias de todos os atributos é 100\% (\autoref{sec:avaliacao}). No RF multiclasse, as portas de destino e de origem responderam, somadas, por 44,9\% desse total, e a porta de destino foi, sozinha, o atributo mais importante. Os atributos que descrevem o comportamento da conexão (duração, pacotes, bytes, estado e histórico) tiveram importâncias individuais bem menores.
 
-As portas também explicam o padrão de erros da \autoref{sec:res-convencional}. Como mostra a \autoref{tab:portasclasse}, no treino a classe DDoS usa a porta 80 em 99,4\% dos fluxos, enquanto o portscan se concentra nas portas 23, 22, 8080, 81 e 2323, associadas a serviços como Telnet e SSH, alvos frequentes de varreduras em dispositivos IoT. Isso ilustra, nos próprios dados, duas das principais falhas listadas pela OWASP: serviços de rede inseguros expostos e senhas fracas \citep{owasp2018iot}. Já o tráfego benigno é disperso, sem nenhuma porta acima de 3\% dos fluxos.
+As portas também explicam o padrão de erros da \autoref{sec:res-convencional}. Como mostra a \autoref{tab:portasclasse}, no treino a classe DDoS usa a porta 80 em 99,4\% dos fluxos, enquanto o portscan se concentra nas portas 23, 22, 8080, 81 e 2323, associadas a serviços de acesso remoto, como Telnet e SSH, alvos frequentes de varreduras em dispositivos IoT. Isso ilustra, nos próprios dados, duas das principais falhas listadas pela OWASP: serviços de rede inseguros expostos e senhas fracas \citep{owasp2018iot}. Já o tráfego benigno é disperso, sem nenhuma porta acima de 3\% dos fluxos.
 
 \begin{table}[htbp]
 \centering
@@ -532,7 +534,7 @@ Deduplicação completa    &  0,00\% & 0,9983 \\
 \end{tabular}
 \end{table}
 
-Essa comparação deve ser lida com cautela, pois, sem deduplicação, a classe benigna também passa a ser limitada a 20.000 fluxos, o que altera a proporção entre as classes. A deduplicação continua sendo necessária para que a avaliação seja correta, mas o alto desempenho das árvores não se explica pela repetição de fluxos: dentro das capturas estudadas, as classes são realmente fáceis de distinguir. Assim, o principal indício de que o protocolo convencional superestima o desempenho não vem da repetição de fluxos, mas da avaliação entre capturas, apresentada a seguir.
+Essa comparação deve ser lida com cautela, pois, sem deduplicação, a classe benigna também passa a ser limitada a 20.000 fluxos, o que altera a proporção entre as classes. A deduplicação continua sendo necessária para que a avaliação seja correta, mas o alto desempenho das árvores não se explica pela repetição de fluxos: dentro das capturas estudadas, as classes se distinguem com facilidade. Assim, o principal indício de que o protocolo convencional superestima o desempenho não vem da repetição de fluxos, mas da avaliação entre capturas, apresentada a seguir.
 
 % ---------------------------------------------------------------------
 \subsection{Generalização para capturas não vistas}
@@ -569,7 +571,7 @@ Convencional        & 0,998 & 0,999 & 0,955 & 0,971 \\
 \end{tabular}
 \end{table}
 
-Outros dois casos merecem destaque. Na captura 36-1, nenhum modelo detectou um único fluxo malicioso: as classes Okiru e C\&C-HeartBeat existem apenas nessa captura e, sem exemplos dela no treino, todo o seu tráfego foi classificado como benigno. Na captura 1-1, as taxas de detecção foram altas, mas acompanhadas de 25\% a 76\% de falsos positivos nos fluxos benignos da própria captura, o que mostra que o tráfego benigno de dispositivos não vistos também é difícil de classificar. Na média das seis capturas, essa taxa de falsos positivos foi de 6,0\% no SVM, 7,3\% na CNN, 9,8\% no RF e 17,8\% na AD.
+Outros dois casos merecem destaque. Na captura 36-1, nenhum modelo detectou um único fluxo malicioso: as classes Okiru e C\&C-HeartBeat existem apenas nessa captura e, sem exemplos dela no treino, todo o seu tráfego foi classificado como benigno. Na captura 1-1, as taxas de detecção foram altas, mas acompanhadas de 25\% a 76\% de falsos positivos nos fluxos benignos da própria captura, o que mostra que o tráfego benigno de dispositivos não vistos também é difícil de classificar. Na média das seis capturas, essa taxa de falsos positivos foi de 6,0\% no SVM, 7,3\% na CNN, 9,8\% no RF e 17,8\% na AD. A subseção seguinte investiga a causa da diferença de generalização entre as árvores e os demais modelos..
 
 % ---------------------------------------------------------------------
 \subsection{Efeito da representação das portas}
@@ -618,7 +620,7 @@ Na CNN, ocorreu o inverso. Com as portas codificadas como categorias, o F1-macro
 \subsection{Discussão}
 \label{sec:discussao}
 
-\textbf{Especialização e generalização.} Os resultados mostram que não há um algoritmo superior em todas as situações, mas um equilíbrio entre especialização e generalização, que depende da forma como os atributos são representados. Com as portas como valores numéricos, as árvores isolam portas exatas e passam a reconhecer cada malware por uma espécie de assinatura: o desempenho é quase perfeito quando a captura já foi vista no treino e baixo em capturas não vistas. SVM e CNN, que recebem a porta como um valor numérico padronizado, não conseguem explorar essa assinatura. Isso lhes custa desempenho no protocolo convencional, mas os obriga a aprender o comportamento da conexão (estado, histórico, pacotes e duração), que se mantém mais parecido de uma captura para outra. O experimento das portas confirma esse mecanismo nos dois sentidos: retirar a assinatura das árvores as torna mais generalistas, e oferecê-la à CNN a torna mais especialista. Esse comportamento ilustra um problema apontado por \citet{arp2022dos}: a porta é um atributo legítimo, mas, no IoT-23, está fortemente ligada à captura de onde o fluxo veio, e não apenas ao tipo de ataque.
+\textbf{Especialização e generalização.} Os resultados mostram que não há um algoritmo superior em todas as situações, mas um equilíbrio entre especialização e generalização, que depende da forma como os atributos são representados. Com as portas como valores numéricos, as árvores isolam portas exatas e passam a reconhecer cada malware por uma espécie de assinatura: o F1-macro passa de 0,99 quando a captura já foi vista no treino, mas cai para menos de 0,5 em capturas não vistas. SVM e CNN, que recebem a porta como um valor numérico padronizado, não conseguem explorar essa assinatura. Isso lhes custa desempenho no protocolo convencional, mas os obriga a aprender o comportamento da conexão (estado, histórico, pacotes e duração), que se mantém mais parecido de uma captura para outra. O experimento das portas confirma esse mecanismo nos dois sentidos: retirar a assinatura das árvores as torna mais generalistas, e oferecê-la à CNN a torna mais especialista. Esse comportamento ilustra um problema apontado por \citet{arp2022dos}: a porta é um atributo legítimo, mas, no IoT-23, está fortemente ligada à captura de onde o fluxo veio, e não apenas ao tipo de ataque.
 
 \textbf{Comparação com o trabalho de base.} No protocolo convencional, os resultados concordam com \citet{souza2024avaliacao}, em que o RF também obteve a maior acurácia e o SVM, o menor F1-Score. As acurácias aqui obtidas para as árvores são maiores, possivelmente pela seleção de capturas e pelo pré-processamento. Ressalta-se que o trabalho de base utilizou os endereços IP como atributos, convertidos em números, e não descreve nenhum tratamento da repetição de fluxos; ambos são fontes potenciais de vazamento de informação \citep{kapoor2023leakage}. Neste trabalho, a repetição de fluxos teve pouco efeito sobre o F1 (\autoref{sec:res-dedup}), mas os endereços IP identificam diretamente os dispositivos de cada captura e podem ter efeito maior. O trabalho de base também não informa o tipo de média de suas métricas, o que dificulta a comparação direta do F1. Por fim, os autores deixaram como trabalho futuro avaliar o desempenho diante de malwares não presentes no conjunto de dados, e os resultados do LOSO indicam que essa resposta é menos favorável do que sugerem as acurácias próximas de 100\%.
 
@@ -639,7 +641,6 @@ Este trabalho comparou RF, AD, SVM e CNN na detecção de ataques em redes IoT c
 No protocolo convencional, os modelos baseados em árvores obtiveram F1-macro acima de 0,99 nas duas tarefas, superando CNN e SVM com diferenças estatisticamente significativas, e a AD apresentou também o menor custo de treinamento e de inferência. A avaliação em capturas não vistas, porém, inverteu essa ordem: SVM e CNN detectaram, em média, 65\% e 68\% do tráfego malicioso dessas capturas, contra 46\% e 34\% das árvores. A análise de importância de atributos e o experimento com a representação das portas mostraram que essa inversão decorre da forma como os modelos utilizam as portas: as árvores as memorizam como assinaturas de cada malware, enquanto SVM e CNN dependem mais do comportamento da conexão. Sem as portas, a AD passou a detectar 92\% do tráfego malicioso das capturas não vistas, contra 34\% com elas.
 
 Conclui-se que a escolha do protocolo de avaliação e da representação dos atributos é tão determinante quanto a escolha do algoritmo, e que acurácias próximas de 100\% no protocolo convencional não garantem a detecção de ameaças novas. Como trabalhos futuros, sugerem-se: a combinação de modelos especialistas e generalistas, ou de classificação supervisionada e detecção por anomalia; representações intermediárias das portas, como faixas de portas conhecidas, registradas e dinâmicas; a validação em conjuntos de dados mais recentes, como o CIC-IoT2023 \citep{neto2023ciciot2023}; e a extensão do experimento das portas ao SVM e a múltiplas sementes da CNN.
-
 
 \bibliography{referencias}
 
